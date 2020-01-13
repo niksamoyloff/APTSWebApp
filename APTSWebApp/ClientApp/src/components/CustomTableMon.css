@@ -1,0 +1,36 @@
+﻿div.tableMonLyt {
+    margin: 0 auto;    
+}
+div.viewMode {
+    width: 1637px;
+    margin: 80px auto 10px auto;
+}
+div.tableHistoryLyt {
+    margin: 90px auto 10px auto;
+}
+.cellTextCenter {
+    text-align: center;
+}
+@media (min-width: 768px) {
+    .container {
+        max-width: 100%;
+    }
+}
+
+@media (min-width: 992px) {
+    .container {
+        max-width: 100%;
+    }
+}
+
+@media (min-width: 1200px) {
+    .container {
+        max-width: 100%;
+    }
+}
+
+@media (min-width: 1600px) {
+    .container {
+        max-width: 100%;
+    }
+}

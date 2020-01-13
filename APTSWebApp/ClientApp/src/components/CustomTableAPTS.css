@@ -1,0 +1,40 @@
+﻿.tsStatusBtnSave {
+    padding: 0px !important;
+    margin-top: -10px !important;
+    color: green;
+}
+.tsStatusBtnEdit {
+    padding: 0px !important;
+    margin-top: -10px !important;
+    color: black;
+}
+.aptsListBtns {
+    display: inline-block;
+    width: 100%;
+}
+.aptsListTable {
+    margin: 0 0 5px 0;
+}
+div.float-right button {
+    margin: 0 0 0 5px;
+}
+div.float-left button {
+    margin-bottom: 0;
+}
+div.rt-th {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.wordwrap {
+    white-space: pre-line !important;
+    word-wrap: break-word;
+}
+.middleItems {
+    margin: auto;
+    text-align: center;
+}
+.rt-resizer {
+    width: 10px !important;
+    right: -5px !important;
+}

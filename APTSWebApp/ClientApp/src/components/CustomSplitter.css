@@ -1,0 +1,17 @@
+﻿.splitterLyt {
+    left: 0;
+    height: 91%;
+    margin-top: 70px;
+}
+.splitterPane {
+    padding: 0 15px 15px 15px;
+    position: relative;
+}
+
+.splitterSeparator .layout-splitter{
+    z-index: -1;
+}
+
+div h3 {
+    text-align: center;
+}

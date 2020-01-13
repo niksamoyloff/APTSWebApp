@@ -1,0 +1,45 @@
+﻿a.navbar-brand {
+    white-space: normal;
+    text-align: center;
+    word-break: break-all;
+}
+
+html {
+    font-size: 14px;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+.box-shadow {
+    box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+}
+
+#Logo {
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    font-weight: 700;
+}
+
+.borderRight {
+    border-right-color: black;
+    border-right-style: solid;
+    border-right-width: thin;
+}
+
+nav .container {
+    max-width: 1600px;
+}
+
+.nav-item > .active {
+    font-weight: bold;
+}
+.nav-item > a {
+    color: black !important;
+}
+
+.navItemName:not(.active):hover {
+    border-bottom: 1px solid;
+}

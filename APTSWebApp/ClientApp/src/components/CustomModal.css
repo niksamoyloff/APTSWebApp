@@ -1,0 +1,25 @@
+﻿.modalToAdd {
+    max-width: 1300px;
+}
+.modalToAdd.modal-dialog,
+.modalToAdd .modal-content {
+    /* 80% of window height */
+    height: 80%;    
+}
+.modalToAdd .modal-body {
+    /* 100% = dialog height, 120px = header + footer */
+    max-height: calc(100% - 120px);
+    overflow-y: scroll;
+}
+.modal {
+    z-index: 1040;
+}
+.addedTS {
+    background-color: lightgreen;
+}
+.modalToEdit {
+    max-width: 900px;
+}
+.modalToEdit .form-group {
+    margin-bottom: 0;
+}
