@@ -41,6 +41,7 @@ namespace APTSWebApp.Controllers
         }
 
         [HttpPost]
+        //[ResponseCache(CacheProfileName = "Default30")]
         public JObject[] GetData([FromBody]object data)
         {
             DateTime? startDate;

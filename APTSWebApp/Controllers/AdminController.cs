@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using APTSWebApp.Models;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace APTSWebApp.Controllers
 {
@@ -18,15 +19,18 @@ namespace APTSWebApp.Controllers
     {
         private readonly APTS_RZA_Context _context;
         private readonly IConfiguration _configuration;
+        private readonly IMemoryCache _memoryCache;
 
-        public AdminController(APTS_RZA_Context context, IConfiguration configuration)
+        public AdminController(APTS_RZA_Context context, IConfiguration configuration, IMemoryCache memoryCache)
         {
             _context = context;
             _configuration = configuration;
+            _memoryCache = memoryCache;
         }
 
         // GET: Home
         [HttpGet]
+        //[ResponseCache(CacheProfileName = "Default30")]
         public JObject[] GetTree()
         {
             List<JObject> list = new List<JObject>();
@@ -38,28 +42,28 @@ namespace APTSWebApp.Controllers
                     key = s.Id,
                     label = s.Name,
                     nodes =
-                        from o in _context.PowerObjects.Where(item => !item.IsRemoved && item.PowerSystemId == s.Id && item.PowerObjectDevices.Count > 0).OrderBy(item => item.Name).ToList()
-                        select new
-                        {
-                            key = o.Id,
-                            label = o.Name,
-                            nodes =
-                                from p in _context.PrimaryEquipments.Where(item => !item.IsRemoved && item.PrimaryEquipmentPowerObjects.Select(i => i.PowerObjectId).Contains(o.Id)).OrderBy(item => item.Name).ToList()
-                                select new
-                                {
-                                    key = p.Shifr,
-                                    label = p.Name,
-                                    nodes =
-                                        from d in _context.Devices.Where(item => !item.IsRemoved &&
-                                            item.PrimaryEquipmentDevices.Select(i => i.PrimaryEquipmentShifr).FirstOrDefault() == p.Shifr &&
-                                            item.PowerObjectDevices.Select(i => i.PowerObjectId).FirstOrDefault() == o.Id).OrderBy(item => item.Name).ToList()
-                                        select new
-                                        {
-                                            key = d.Shifr,
-                                            label = d.Name
-                                        }
-                                }
-                        }
+                    from o in _context.PowerObjects.Where(item => !item.IsRemoved && item.PowerSystemId == s.Id && item.PowerObjectDevices.Count > 0).OrderBy(item => item.Name).ToList()
+                    select new
+                    {
+                        key = o.Id,
+                        label = o.Name,
+                        nodes =
+                            from p in _context.PrimaryEquipments.Where(item => !item.IsRemoved && item.PrimaryEquipmentPowerObjects.Select(i => i.PowerObjectId).Contains(o.Id)).OrderBy(item => item.Name).ToList()
+                            select new
+                            {
+                                key = p.Shifr,
+                                label = p.Name,
+                                nodes =
+                                    from d in _context.Devices.Where(item => !item.IsRemoved &&
+                                        item.PrimaryEquipmentDevices.Select(i => i.PrimaryEquipmentShifr).FirstOrDefault() == p.Shifr &&
+                                        item.PowerObjectDevices.Select(i => i.PowerObjectId).FirstOrDefault() == o.Id).OrderBy(item => item.Name).ToList()
+                                    select new
+                                    {
+                                        key = d.Shifr,
+                                        label = d.Name
+                                    }
+                            }
+                    }
                 });
                 list.Add(jObject);
             }
