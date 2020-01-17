@@ -365,18 +365,18 @@ export default class TableAPTS extends Component {
                 Header: () => <b>ID в ОИК</b>,
                 accessor: 'oicId',
                 minWidth: 60,
-                filterMethod: (filter, rows) =>
-                    matchSorter(rows, filter.value, { keys: ["oicId"] }),
-                filterAll: true,
+                //filterMethod: (filter, rows) =>
+                //    matchSorter(rows, filter.value, { keys: ["oicId"] }),
+                //filterAll: true,
                 headerClassName: 'wordwrap'
             },
             {
                 Header: () => <b>Наименование</b>,
                 accessor: 'label',
                 minWidth: 650,
-                filterMethod: (filter, rows) =>
-                    matchSorter(rows, filter.value, { keys: ["label"] }),
-                filterAll: true,
+                //filterMethod: (filter, rows) =>
+                //    matchSorter(rows, filter.value, { keys: ["label"] }),
+                //filterAll: true,
                 style: { 'whiteSpace': 'normal' },
                 headerClassName: 'wordwrap'
             },
@@ -391,7 +391,7 @@ export default class TableAPTS extends Component {
             },
             {
                 Header: '',
-                minWidth: 40,
+                minWidth: 30,
                 Cell: (row) => (
                     <div className="middleItems">
                         <Button variant="link" size="lg" className="tsStatusBtnEdit" onClick={this.openModalToEditHandler}>
@@ -428,7 +428,7 @@ export default class TableAPTS extends Component {
                                                     ?
                                                     <span>Примечание отсутствует.</span>
                                                     :
-                                                    <span style={{ whiteSpace: "pre" }}>{row.original.comment}</span>
+                                                    <span style={{ whiteSpace: "pre-wrap" }}>{row.original.comment}</span>
                                             }
                                         </em>
                                     </div>
@@ -439,7 +439,7 @@ export default class TableAPTS extends Component {
                         NoDataComponent={() => null}
                         showPagination={false}
                         defaultPageSize={aptsList.length !== 0 ? aptsList.length : 1}
-                        sortable={true}
+                        sortable={false}
                         freezeWhenExpanded={true}
                     />
                 </div>
