@@ -173,7 +173,7 @@ export class TableMonAPTS extends Component {
                                         <span>&nbsp;&nbsp;&nbsp;</span>
                                         (Значение: <b>{ts.value}</b>)
                                         <br/>
-                                        <span style={{ whiteSpace: "pre" }}>{ts.comment}</span>
+                                        <span style={{ whiteSpace: "pre-wrap" }}>{ts.comment}</span>
                                     </div>
                                 ))
                             );
