@@ -41,7 +41,6 @@ namespace APTSWebApp.Controllers
         }
 
         [HttpPost]
-        //[ResponseCache(CacheProfileName = "Default30")]
         public JObject[] GetData([FromBody]object data)
         {
             DateTime? startDate;
@@ -79,19 +78,19 @@ namespace APTSWebApp.Controllers
             List<OicTs> listStatusTs = _context.OicTs.Where(ts => !ts.IsRemoved && ts.IsStatusTs).ToList();
 
             List<ReceivedTsvalues> listReceivedTsValues = listReceivedValues.Where(ts =>
-                listTs.Select(item => item.Id).Contains(ts.OicTsid)
+                listTs.Where(item => item.Id == ts.OicTsid).Any()
                 && ts.Val == 1
                 && ts.Dt.Date >= startDate.Value.Date
                 && ts.Dt.Date <= endDate.Value.Date
                 ).ToList();
 
             List<ReceivedTsvalues> listReceivedStatusTsValues = listReceivedValues.Where(ts =>
-                listStatusTs.Select(item => item.Id).Contains(ts.OicTsid)
+                listStatusTs.Where(item => item.Id == ts.OicTsid).Any()
                 && ts.Dt.Date >= startDate.Value.Date
                 && ts.Dt.Date <= endDate.Value.Date
                 ).ToList();
 
-            List<ReceivedTsvalues> summaryList = listReceivedTsValues.Concat(listReceivedStatusTsValues).ToList();
+            List<ReceivedTsvalues> summaryList = listReceivedTsValues.Concat(listReceivedStatusTsValues).OrderByDescending(ts => ts.Id).ToList();
 
             summaryList = !isArchiveMode
                 ?
@@ -101,7 +100,7 @@ namespace APTSWebApp.Controllers
 
             foreach (var dev in _context.Devices.Where(d => !d.IsRemoved))
             {
-                if (_context.OicTs.Where(item => item.DeviceShifr == dev.Shifr).Count() > 0)
+                if (_context.OicTs.Where(item => item.DeviceShifr == dev.Shifr).Any())
                 {
                     var tsListOfDevices = _context.OicTs.Where(i => i.DeviceShifr == dev.Shifr).Select(i => i.Id).ToList();
 

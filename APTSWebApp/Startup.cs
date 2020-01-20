@@ -26,11 +26,6 @@ namespace APTSWebApp
             services.AddMvc(options =>
             {
                 options.EnableEndpointRouting = false;
-                //options.CacheProfiles.Add("Default30",
-                //    new Microsoft.AspNetCore.Mvc.CacheProfile()
-                //    {
-                //        Duration = 30
-                //    });
             }).AddNewtonsoftJson();
 
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
@@ -41,8 +36,7 @@ namespace APTSWebApp
                 configuration.RootPath = "ClientApp/build";
             });
 
-            //services.AddMemoryCache();
-            services.AddResponseCaching();
+            //services.AddResponseCaching();
 
             services.AddDbContext<APTS_RZA_Context>(options => options.UseSqlServer(Configuration.GetConnectionString("APTSConnection")));
         }
@@ -60,20 +54,20 @@ namespace APTSWebApp
                 app.UseExceptionHandler("/Error");
             }
 
-            app.UseResponseCaching();
-            app.Use(async (context, next) =>
-            {
-                context.Response.GetTypedHeaders().CacheControl =
-                    new Microsoft.Net.Http.Headers.CacheControlHeaderValue()
-                    {
-                        Public = true,
-                        MaxAge = TimeSpan.FromMinutes(3)
-                    };
-                context.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.Vary] =
-                    new string[] { "Accept-Encoding" };
+            //app.Use(async (context, next) =>
+            //{
+            //    context.Response.GetTypedHeaders().CacheControl =
+            //        new Microsoft.Net.Http.Headers.CacheControlHeaderValue()
+            //        {
+            //            Public = true,
+            //            MaxAge = TimeSpan.FromMinutes(5)
+            //        };
+            //    context.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.Vary] =
+            //        new string[] { "Accept-Encoding" };
 
-                await next();
-            });
+            //    await next();
+            //});
+            //app.UseResponseCaching();
 
             app.UseStaticFiles();
             app.UseSpaStaticFiles();

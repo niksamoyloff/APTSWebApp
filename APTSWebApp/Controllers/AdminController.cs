@@ -19,18 +19,16 @@ namespace APTSWebApp.Controllers
     {
         private readonly APTS_RZA_Context _context;
         private readonly IConfiguration _configuration;
-        private readonly IMemoryCache _memoryCache;
 
         public AdminController(APTS_RZA_Context context, IConfiguration configuration, IMemoryCache memoryCache)
         {
             _context = context;
             _configuration = configuration;
-            _memoryCache = memoryCache;
         }
 
         // GET: Home
         [HttpGet]
-        //[ResponseCache(CacheProfileName = "Default30")]
+        [ResponseCache(VaryByHeader = "User-Agent", Duration = 300)]
         public JObject[] GetTree()
         {
             List<JObject> list = new List<JObject>();
@@ -210,6 +208,7 @@ namespace APTSWebApp.Controllers
         }
 
         [HttpGet]
+        [ResponseCache(VaryByHeader = "User-Agent", Duration = 300)]
         public JObject[] GetTSListFromOIC()
         {
             Api_OIC apiOIC = new Api_OIC(_configuration);
