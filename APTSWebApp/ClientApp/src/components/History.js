@@ -132,7 +132,7 @@ export class History extends Component {
                     data={data}
                     //resolveData={data => data.map(row => row)}
                     columns={columns}
-                    className="-highlight tableMonLyt"
+                    className="-highlight"
                     filterable
                     defaultFilterMethod={(filter, row) =>
                         String(row[filter.id]) === filter.value}
