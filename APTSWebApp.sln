@@ -5,6 +5,10 @@ VisualStudioVersion = 16.0.29519.87
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "APTSWebApp", "APTSWebApp\APTSWebApp.csproj", "{2481DB55-D00D-42AA-8D39-7D3893EAC620}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBRepository", "DBRepository\DBRepository.csproj", "{7E76FD6A-5D29-4754-B72D-EC5BFF60639D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Models", "Models\Models.csproj", "{556B665E-50C0-4108-A212-FC9E223352C9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{2481DB55-D00D-42AA-8D39-7D3893EAC620}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2481DB55-D00D-42AA-8D39-7D3893EAC620}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2481DB55-D00D-42AA-8D39-7D3893EAC620}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7E76FD6A-5D29-4754-B72D-EC5BFF60639D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E76FD6A-5D29-4754-B72D-EC5BFF60639D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E76FD6A-5D29-4754-B72D-EC5BFF60639D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E76FD6A-5D29-4754-B72D-EC5BFF60639D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{556B665E-50C0-4108-A212-FC9E223352C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{556B665E-50C0-4108-A212-FC9E223352C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{556B665E-50C0-4108-A212-FC9E223352C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{556B665E-50C0-4108-A212-FC9E223352C9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
