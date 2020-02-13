@@ -90,7 +90,7 @@ namespace APTSWebApp.Controllers
                 && ts.Dt.Date <= endDate.Value.Date
                 ).ToList();
 
-            List<ReceivedTsvalues> summaryList = listReceivedTsValues.Concat(listReceivedStatusTsValues).OrderByDescending(ts => ts.Id).ToList();
+            List<ReceivedTsvalues> summaryList = listReceivedTsValues.Concat(listReceivedStatusTsValues).OrderByDescending(ts => ts.Dt).ToList();
 
             summaryList = !isArchiveMode
                 ?
