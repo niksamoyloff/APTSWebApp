@@ -91,9 +91,9 @@ namespace APTSWebApp.Models
 
                 entity.Property(e => e.DeviceShifr).HasMaxLength(128);
 
-                entity.Property(e => e.IsStatusTs).HasColumnName("IsStatusTS");
+                entity.Property(e => e.IsOiсTs).HasColumnName("IsOiсTS");
 
-                entity.Property(e => e.IsOicTs).HasColumnName("IsOicTS");
+                entity.Property(e => e.IsStatusTs).HasColumnName("IsStatusTS");
 
                 entity.HasOne(d => d.DeviceShifrNavigation)
                     .WithMany(p => p.OicTs)
