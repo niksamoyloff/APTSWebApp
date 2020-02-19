@@ -1,30 +1,29 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Button, Modal, Form, Row, Col } from 'react-bootstrap';
 
-const ModalToEditAPTS = (props) => {
+function ModalToEditAPTS(props) {
     const [commentVal, setCommentVal] = useState(props.comment)
-    const [status, setStatus] = useState(props.status)
+    const [isStatusTS, setIsStatusTS] = useState(props.status)
+    //const [isOicTS, setIsOicTS] = useState(props.isOic)
     const [tsId] = useState(props.tsId)
-    const [isEditComment, setIsEditComment] = useState(false);
-    const [isEditStatus, setIsEditStatus] = useState(false);
 
-    const handleCommentChange = e => {
-        const { value } = e.target;
-        setIsEditComment(true);
-        setCommentVal(value);        
+    const handleCommentChange = (val) => {
+        setCommentVal(val);        
     }
 
     const handleStatusChange = () => {
-        setIsEditStatus(true);
-        setStatus(!props.status);
+        setIsStatusTS(!isStatusTS);
     }
 
     const handleToSave = () => {
-        let st = isEditStatus ? status : props.status;
-        let cmt = isEditComment ? commentVal : props.comment;
-
-        props.onEdit(tsId, st, cmt)
+        props.onEdit(tsId, isStatusTS, commentVal)
     }
+
+    useEffect(() => {
+        setIsStatusTS(props.status);
+        setCommentVal(props.comment);
+    }, [props.status, props.comment])
+
     return (
         <Modal dialogClassName="modalToEdit" show={props.show} onHide={props.onClose} centered>
             <Modal.Header closeButton={props.onClose}>
@@ -36,14 +35,14 @@ const ModalToEditAPTS = (props) => {
                         <Form.Label style={{ padding:'0 15px' }} >
                             Сигнал состояния:
                         </Form.Label>
-                        <Form.Check defaultChecked={props.status} style={{ marginTop: '2px' }} onChange={handleStatusChange} />
+                        <Form.Check checked={isStatusTS} style={{ marginTop: '2px' }} onChange={() => handleStatusChange()} />
                     </Form.Group>
                     <Form.Group as={Row} controlId="exampleForm.ControlTextarea1">
                         <Form.Label column sm="3">
                             Примечание:
                         </Form.Label>
                         <Col sm="12">
-                            <Form.Control as="textarea" rows="3" defaultValue={props.comment} onChange={handleCommentChange} />
+                            <Form.Control as="textarea" rows="3" value={commentVal} onChange={(e) => handleCommentChange(e.target.value)} />
                         </Col>
                     </Form.Group>
                 </Form>
