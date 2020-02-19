@@ -46,7 +46,8 @@ export default class TableAPTS extends Component {
             tsOicId: '',
             commentOfEdit: '',
             actionName: '',
-            keyOfEdit: ''
+            keyOfEdit: '',
+            isOicStatus: false
         };
 
         this.getTSListFromOIC = this.getTSListFromOIC.bind(this);
@@ -175,8 +176,8 @@ export default class TableAPTS extends Component {
         await this.getAPTSList();
     }
 
-    async editAPTS(tsOicId, status, commentVal) {
-        const data = { id: tsOicId, status: status, comment: commentVal };
+    async editAPTS(tsOicId, isStatusTS, commentVal, isOicTS ) {
+        const data = { id: tsOicId, status: isStatusTS, comment: commentVal, isOic: isOicTS };
         await this.fetchData('Admin/EditAPTS', data);
 
         this.setState({ showModalToEdit: false, loadingAPTS: true });
@@ -271,7 +272,8 @@ export default class TableAPTS extends Component {
                     tsOicId: rowData.oicId,
                     statusOfEdit: rowData.isStatus,
                     labelOfEdit: rowData.label,
-                    commentOfEdit: rowData.comment
+                    commentOfEdit: rowData.comment,
+                    isOicStatus: rowData.isOic
                 }, () => {
                     if (handleOriginal) {
                         handleOriginal()
@@ -340,6 +342,7 @@ export default class TableAPTS extends Component {
                     status={this.state.statusOfEdit}
                     label={this.state.labelOfEdit}
                     comment={this.state.commentOfEdit}
+                    isOic={this.state.isOicStatus}
                     onClose={this.closeModalToEditHandler}
                     onEdit={this.editAPTS}
                 />
@@ -373,7 +376,7 @@ export default class TableAPTS extends Component {
             {
                 Header: () => <b>Наименование</b>,
                 accessor: 'label',
-                minWidth: 650,
+                minWidth: 600,
                 //filterMethod: (filter, rows) =>
                 //    matchSorter(rows, filter.value, { keys: ["label"] }),
                 //filterAll: true,
@@ -384,6 +387,15 @@ export default class TableAPTS extends Component {
                 Header: () => <b>Сигнал состояния</b>,
                 accessor: 'isStatus',
                 minWidth: 100,
+                Cell: (row) => (
+                    <Form.Check defaultChecked={row.value} className="tsStatus middleItems" disabled />
+                ),
+                headerClassName: 'wordwrap'
+            },
+            {
+                Header: () => <b>ТС ОИК</b>,
+                accessor: 'isOic',
+                minWidth: 50,
                 Cell: (row) => (
                     <Form.Check defaultChecked={row.value} className="tsStatus middleItems" disabled />
                 ),

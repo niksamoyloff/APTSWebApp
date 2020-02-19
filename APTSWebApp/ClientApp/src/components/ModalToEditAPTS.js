@@ -4,7 +4,7 @@ import { Button, Modal, Form, Row, Col } from 'react-bootstrap';
 function ModalToEditAPTS(props) {
     const [commentVal, setCommentVal] = useState(props.comment)
     const [isStatusTS, setIsStatusTS] = useState(props.status)
-    //const [isOicTS, setIsOicTS] = useState(props.isOic)
+    const [isOicTS, setIsOicTS] = useState(props.isOic)
     const [tsId] = useState(props.tsId)
 
     const handleCommentChange = (val) => {
@@ -13,16 +13,25 @@ function ModalToEditAPTS(props) {
 
     const handleStatusChange = () => {
         setIsStatusTS(!isStatusTS);
+    }    
+
+    const handleOicStatusChange = () => {
+        setIsOicTS(!isOicTS);
     }
 
     const handleToSave = () => {
-        props.onEdit(tsId, isStatusTS, commentVal)
+        props.onEdit(tsId, isStatusTS, commentVal, isOicTS)
     }
 
     useEffect(() => {
         setIsStatusTS(props.status);
         setCommentVal(props.comment);
-    }, [props.status, props.comment])
+        setIsOicTS(props.isOic);
+    }, [
+        props.status,
+        props.comment, 
+        props.isOic
+    ])
 
     return (
         <Modal dialogClassName="modalToEdit" show={props.show} onHide={props.onClose} centered>
@@ -32,10 +41,14 @@ function ModalToEditAPTS(props) {
             <Modal.Body>
                 <Form>
                     <Form.Group as={Row} controlId="formPlaintextEmail">
-                        <Form.Label style={{ padding:'0 15px' }} >
+                        <Form.Label style={{ padding:'0 10px 0 15px' }} >
                             Сигнал состояния:
                         </Form.Label>
                         <Form.Check checked={isStatusTS} style={{ marginTop: '2px' }} onChange={() => handleStatusChange()} />
+                        <Form.Label style={{ padding: '0 10px' }} >
+                            ТС ОИК:
+                        </Form.Label>
+                        <Form.Check checked={isOicTS} style={{ marginTop: '2px' }} onChange={() => handleOicStatusChange()} />
                     </Form.Group>
                     <Form.Group as={Row} controlId="exampleForm.ControlTextarea1">
                         <Form.Label column sm="3">

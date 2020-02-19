@@ -85,7 +85,8 @@ namespace APTSWebApp.Controllers
                     oicId = s.OicId,
                     label = s.Name,
                     isStatus = s.IsStatusTs,
-                    comment = s.Comment
+                    comment = s.Comment,
+                    isOic = s.IsOiсTs
                 });
                 list.Add(jObject);
             }
@@ -186,10 +187,11 @@ namespace APTSWebApp.Controllers
         [HttpPost]
         public void EditAPTS([FromBody]object data)
         {
-            var definition = new { id = "", status = "", comment = "" };
+            var definition = new { id = "", status = "", comment = "", isOic = "" };
             var tsDes = JsonConvert.DeserializeAnonymousType(data.ToString(), definition);
             int tsOicId = Convert.ToInt32(tsDes.id);
             bool tsStatus = Convert.ToBoolean(tsDes.status);
+            bool tsOic = Convert.ToBoolean(tsDes.isOic);
             string tsComment = tsDes.comment;
 
             var tsList = _context.OicTs.Where(item => item.OicId == tsOicId).ToList();
@@ -201,6 +203,7 @@ namespace APTSWebApp.Controllers
                     {
                         ts.IsStatusTs = tsStatus;
                         ts.Comment = tsComment;
+                        ts.IsOiсTs = tsOic;
                     }
                 }
                 _context.SaveChanges();
