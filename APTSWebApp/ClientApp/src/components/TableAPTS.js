@@ -3,7 +3,7 @@ import { Button, Form } from 'react-bootstrap';
 import ModalToDeleteAPTS from './ModalToDeleteAPTS';
 import { ModalToAddAPTS } from './ModalToAddAPTS';
 import NestedModalToActionAPTS from './NestedModalToActionAPTS';
-import ExportDevAPTS from './ExportDevAPTS';
+import ExportListAPTS from './ExportListAPTS';
 import LoaderAPTS from './LoaderAPTS';
 import matchSorter from 'match-sorter'
 import PropTypes from "prop-types";
@@ -204,6 +204,10 @@ export default class TableAPTS extends Component {
             objToExp["device"] = this.props.deviceName;
             objToExp["tsName"] = list[i].label;
             objToExp["tsId"] = list[i].oicId;
+            objToExp["isStatus"] = list[i].isStatus;
+            objToExp["comment"] = list[i].comment;
+            objToExp["isOic"] = list[i].isOic;
+            objToExp["currentVal"] = list[i].currentVal;
             arrayOfObjects.push(objToExp);
         }
 
@@ -295,7 +299,7 @@ export default class TableAPTS extends Component {
                 <div className="float-left">
                     {
                         aptsListLength
-                            ? <ExportDevAPTS data={listToExport} />
+                            ? <ExportListAPTS data={listToExport} filename="DeviceListTS"/>
                             : <Button variant="outline-success" size="sm" disabled>Excel</Button>
                     }
                 </div>

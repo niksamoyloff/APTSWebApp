@@ -40,28 +40,32 @@ namespace APTSWebApp.Controllers
                     key = s.Id,
                     label = s.Name,
                     nodes =
-                    from o in _context.PowerObjects.Where(item => !item.IsRemoved && item.PowerSystemId == s.Id && item.PowerObjectDevices.Count > 0).OrderBy(item => item.Name).ToList()
-                    select new
-                    {
-                        key = o.Id,
-                        label = o.Name,
-                        nodes =
-                            from p in _context.PrimaryEquipments.Where(item => !item.IsRemoved && item.PrimaryEquipmentPowerObjects.Select(i => i.PowerObjectId).Contains(o.Id)).OrderBy(item => item.Name).ToList()
-                            select new
-                            {
-                                key = p.Shifr,
-                                label = p.Name,
-                                nodes =
-                                    from d in _context.Devices.Where(item => !item.IsRemoved &&
-                                        item.PrimaryEquipmentDevices.Select(i => i.PrimaryEquipmentShifr).FirstOrDefault() == p.Shifr &&
-                                        item.PowerObjectDevices.Select(i => i.PowerObjectId).FirstOrDefault() == o.Id).OrderBy(item => item.Name).ToList()
-                                    select new
-                                    {
-                                        key = d.Shifr,
-                                        label = d.Name
-                                    }
-                            }
-                    }
+                        from o in _context.PowerObjects
+                        .Where(item => !item.IsRemoved && item.PowerSystemId == s.Id && item.PowerObjectDevices.Count > 0)
+                        .OrderBy(item => item.Name).ToList()
+                        select new
+                        {
+                            key = o.Id,
+                            label = o.Name,
+                            nodes =
+                                from p in _context.PrimaryEquipments
+                                .Where(item => !item.IsRemoved && item.PrimaryEquipmentPowerObjects.Select(i => i.PowerObjectId).Contains(o.Id))
+                                .OrderBy(item => item.Name).ToList()
+                                select new
+                                {
+                                    key = p.Shifr,
+                                    label = p.Name,
+                                    nodes =
+                                        from d in _context.Devices.Where(item => !item.IsRemoved &&
+                                            item.PrimaryEquipmentDevices.Select(i => i.PrimaryEquipmentShifr).FirstOrDefault() == p.Shifr &&
+                                            item.PowerObjectDevices.Select(i => i.PowerObjectId).FirstOrDefault() == o.Id).OrderBy(item => item.Name).ToList()
+                                        select new
+                                        {
+                                            key = d.Shifr,
+                                            label = d.Name
+                                        }
+                                }
+                        }
                 });
                 list.Add(jObject);
             }
@@ -79,16 +83,26 @@ namespace APTSWebApp.Controllers
 
             foreach (var s in oicTSs)
             {
-                JObject jObject = JObject.FromObject(new
+                try
                 {
-                    key = s.Id,
-                    oicId = s.OicId,
-                    label = s.Name,
-                    isStatus = s.IsStatusTs,
-                    comment = s.Comment,
-                    isOic = s.IsOiсTs
-                });
-                list.Add(jObject);
+                    var currVal = s.ReceivedTsvalues.OrderBy(v => v.Id).Select(v => v.Val).LastOrDefault().ToString() ?? "";
+                    JObject jObject = JObject.FromObject(new
+                    {
+                        key = s.Id,
+                        oicId = s.OicId,
+                        label = s.Name,
+                        isStatus = s.IsStatusTs,
+                        comment = s.Comment,
+                        isOic = s.IsOicTs,
+                        currentVal = currVal
+                    });
+                    list.Add(jObject);
+                }
+                catch (Exception ex)
+                {
+
+                }
+                
             }
             return list.ToArray();
         }
@@ -203,7 +217,7 @@ namespace APTSWebApp.Controllers
                     {
                         ts.IsStatusTs = tsStatus;
                         ts.Comment = tsComment;
-                        ts.IsOiсTs = tsOic;
+                        ts.IsOicTs = tsOic;
                     }
                 }
                 _context.SaveChanges();
@@ -270,22 +284,23 @@ namespace APTSWebApp.Controllers
         {
             List<JObject> list = new List<JObject>();
 
-            if (_context.OicTs.Count() > 0)
+            if (_context.OicTs.Any())
             {
-                foreach (var ts in _context.OicTs.Where(item => !item.IsRemoved).OrderByDescending(item => item.Id))
+                foreach (var ts in _context.OicTs.Where(item => !item.IsRemoved).ToList().OrderByDescending(item => item.Id))
                 {
                     var device = _context.Devices.Where(d => !d.IsRemoved && d.Shifr == ts.DeviceShifr)
-                        .FirstOrDefault();
+                                 .FirstOrDefault();
                     var eObj = _context.PowerObjects.Where(o => !o.IsRemoved && o.Id == _context.PowerObjectDevices
-                        .Where(d => device != null && d.DeviceShifr == device.Shifr)
-                        .FirstOrDefault().PowerObjectId)
-                        .FirstOrDefault();
+                               .Where(d => device != null && d.DeviceShifr == device.Shifr)
+                               .FirstOrDefault().PowerObjectId)
+                               .FirstOrDefault();
                     var pSys = _context.PowerSystems.Where(s => !s.IsRemoved && eObj != null && s.Id == eObj.PowerSystemId)
-                        .FirstOrDefault();
+                               .FirstOrDefault();
                     var primary = _context.PrimaryEquipments.Where(p => !p.IsRemoved && p.Shifr == _context.PrimaryEquipmentDevices
-                        .Where(p => device != null && p.DeviceShifr == device.Shifr)
-                        .FirstOrDefault().PrimaryEquipmentShifr)
-                        .FirstOrDefault();
+                                  .Where(p => device != null && p.DeviceShifr == device.Shifr)
+                                  .FirstOrDefault().PrimaryEquipmentShifr)
+                                  .FirstOrDefault();
+                    var currVal = ts.ReceivedTsvalues.OrderBy(v => v.Id).Select(v => v.Val).LastOrDefault().ToString() ?? "";
                     if (device != null && eObj != null && pSys != null && primary != null)
                     {
                         JObject jObject = JObject.FromObject(new
@@ -295,11 +310,15 @@ namespace APTSWebApp.Controllers
                             primary = primary.Name,
                             dev = device.Name,
                             tsName = ts.Name,
-                            tsId = ts.OicId
+                            tsId = ts.OicId,
+                            isStatus = ts.IsStatusTs,
+                            comment = ts.Comment,
+                            isOic = ts.IsOicTs,
+                            currentVal = currVal
                         });
                         list.Add(jObject);
                     }
-                }
+                }                
             }
             return list.ToArray();
         }

@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { Input, ListGroup } from 'reactstrap';
 import TreeMenu from 'react-simple-tree-menu';
+import ExportListAPTS from './ExportListAPTS';
 import { ListItem } from './ListItem';
-import ExportDevTreeAPTS from './ExportDevTreeAPTS';
 import LoaderAPTS from './LoaderAPTS';
 import '../../node_modules/react-simple-tree-menu/dist/main.css';
 
@@ -37,21 +37,23 @@ export class TreePowObj extends Component {
             <LoaderAPTS loading={this.state.loading} />
             :
             <>
-                <ExportDevTreeAPTS data={this.state.treeToExport} />
-                <TreeMenu data={this.state.enObjects} debounceTime={125} >
-                    {({ search, items }) => (
-                        <>
-                            {
-                                //{<Input onChange={e => search(e.target.value)} placeholder="Поиск..." />
-                            }
-                            <ListGroup>
-                                {items.map(({ ...props }) => (
-                                    <ListItem {...props} onClick={(e) => this.props.getKey(e, props)} />
-                                ))}
-                            </ListGroup>
-                        </>
-                    )}
-                </TreeMenu>
+                <ExportListAPTS data={this.state.treeToExport} filename="TreeDeviceListTS" />
+                <div style={{ marginTop: '5px' }}>
+                    <TreeMenu data={this.state.enObjects} debounceTime={125} >
+                        {({ search, items }) => (
+                            <>
+                                {
+                                    //{<Input onChange={e => search(e.target.value)} placeholder="Поиск..." />
+                                }
+                                <ListGroup>
+                                    {items.map(({ ...props }) => (
+                                        <ListItem {...props} onClick={(e) => this.props.getKey(e, props)} />
+                                    ))}
+                                </ListGroup>
+                            </>
+                        )}
+                    </TreeMenu>
+                </div>
             </>          
         
         return (
