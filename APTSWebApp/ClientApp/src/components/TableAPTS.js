@@ -130,7 +130,7 @@ export default class TableAPTS extends Component {
         let arrayOfObjects = [], item;
         let keys = ["oicid", "name", "device"];
         let content = document.getElementById("tBodyContentListFromOIC");
-        let checkedCheckboxes = content.querySelectorAll('input[type="checkbox"]:not(.tsStatus):checked');
+        let checkedCheckboxes = content.querySelectorAll('input[type="checkbox"]:not(.tsStatus):not(.isOic):checked');
 
         for (let i = 0; i < checkedCheckboxes.length; i++) {
             let objToAdd = {};
@@ -143,10 +143,10 @@ export default class TableAPTS extends Component {
                     }
                 }
                 let statusAttr = $(item).closest("tr").find(".tsStatus").prop("checked");
-                if (statusAttr !== undefined && statusAttr !== false)
-                    objToAdd["isStatus"] = true;
-                else
-                    objToAdd["isStatus"] = false;
+                let isOicAttr = $(item).closest("tr").find(".isOic").prop("checked");
+                
+                objToAdd["isStatus"] = statusAttr !== undefined && statusAttr !== false ? true : false;
+                objToAdd["isOic"] = isOicAttr !== undefined && isOicAttr !== false ? true : false;
                 arrayOfObjects.push(objToAdd);
             }
         }
@@ -470,7 +470,7 @@ export default class TableAPTS extends Component {
             <div>
                 {
                     loadingAPTS
-                        ? <LoaderAPTS loading={loadingAPTS} />
+                        ? <LoaderAPTS />
                         : this.renderList(aptsList)
                 }
             </div>

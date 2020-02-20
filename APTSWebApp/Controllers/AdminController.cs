@@ -105,12 +105,13 @@ namespace APTSWebApp.Controllers
         [HttpPost]
         public void AddAPTS([FromBody]object data)
         {
-            var definition = new[] { new { oicid = "", name = "", device = "", isStatus = "" } };
+            var definition = new[] { new { oicid = "", name = "", device = "", isStatus = "", isOic = "" } };
             var arrDevDes = JsonConvert.DeserializeAnonymousType(data.ToString(), definition);
             int oicId;
             string devId;
             string tsName;
             bool isStatus;
+            bool isOic;
 
             List<OicTs> listToAdd = new List<OicTs>();
 
@@ -120,6 +121,7 @@ namespace APTSWebApp.Controllers
                 devId = arrDevDes[i].device.Split('/')[3];
                 tsName = arrDevDes[i].name;
                 isStatus = Convert.ToBoolean(arrDevDes[i].isStatus);
+                isOic = Convert.ToBoolean(arrDevDes[i].isOic);
 
                 OicTs ts = new OicTs
                 {
@@ -127,6 +129,7 @@ namespace APTSWebApp.Controllers
                     Name = tsName,
                     OicId = oicId,
                     IsStatusTs = isStatus,
+                    IsOicTs = isOic,
                     Comment = _context.OicTs.Where(item => item.OicId == oicId).FirstOrDefault()?.Comment ?? ""
                 };
 
@@ -220,7 +223,7 @@ namespace APTSWebApp.Controllers
         }
 
         [HttpGet]
-        [ResponseCache(VaryByHeader = "User-Agent", Duration = 300)]
+        //[ResponseCache(VaryByHeader = "User-Agent", Duration = 60)]
         public JObject[] GetTSListFromOIC()
         {
             Api_OIC apiOIC = new Api_OIC(_configuration);
@@ -229,19 +232,29 @@ namespace APTSWebApp.Controllers
 
             if (tsCollection.Count > 0)
             {
-                foreach (DataRow row in tsCollection)
+                try
                 {
-                    var tsDB = _context.OicTs.Where(item => !item.IsRemoved && item.OicId == (int)row.ItemArray[0]).FirstOrDefault();
-                    JObject jObject = JObject.FromObject(new
+                    foreach (DataRow row in tsCollection)
                     {
-                        key = row.ItemArray[0],
-                        oicId = row.ItemArray[0],
-                        label = row.ItemArray[1],
-                        enObj = row.ItemArray[2],
-                        isStatus = tsDB != null ? tsDB.IsStatusTs : false
-                    });
-                    list.Add(jObject);
+                        var tsDB = _context.OicTs.Where(item => !item.IsRemoved && item.OicId == (int)row.ItemArray[0]).FirstOrDefault();
+                        JObject jObject = JObject.FromObject(new
+                        {
+                            key = row.ItemArray[0],
+                            oicId = row.ItemArray[0],
+                            label = row.ItemArray[1],
+                            enObj = row.ItemArray[2],
+                            isStatus = tsDB != null ? tsDB.IsStatusTs : false,
+                            isAdded = tsDB != null ? true : false,
+                            isOic = tsDB != null ? tsDB.IsOicTs : false
+                        });
+                        list.Add(jObject);
+                    }
                 }
+                catch (Exception ex)
+                {
+
+                }
+                
             }
             return list.ToArray();
         }

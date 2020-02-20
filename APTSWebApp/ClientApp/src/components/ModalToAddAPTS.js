@@ -10,15 +10,15 @@ export class ModalToAddAPTS extends Component {
         super(props);
 
         this.search = this.search.bind(this);
-        this.checkAPTSisAlreadyAdded = this.checkAPTSisAlreadyAdded.bind(this);
+        //this.checkAPTSisAlreadyAdded = this.checkAPTSisAlreadyAdded.bind(this);
         this.editAllCheckboxesStatesListTSFromOIC = this.editAllCheckboxesStatesListTSFromOIC.bind(this);
         this.getCountCheckedCheckboxesListTSFromOIC = this.getCountCheckedCheckboxesListTSFromOIC.bind(this);
     }
 
-    componentDidUpdate() {
-        if (!this.props.loading)
-            this.checkAPTSisAlreadyAdded();
-    }
+    //componentDidUpdate() {
+    //    if (!this.props.loading)
+    //        this.checkAPTSisAlreadyAdded();
+    //}
 
     search() {
         let input = document.getElementById("searchTS");
@@ -54,8 +54,8 @@ export class ModalToAddAPTS extends Component {
 
     getCountCheckedCheckboxesListTSFromOIC() {
         let content = document.getElementById("tBodyContentListFromOIC");
-        let countCheckboxes = content.querySelectorAll('input[type="checkbox"]:not([disabled]):not(.tsStatus)').length
-        let countCheckedCheckboxes = content.querySelectorAll('input[type="checkbox"]:not([disabled]):not(.tsStatus):checked').length;
+        let countCheckboxes = content.querySelectorAll('input[type="checkbox"]:not([disabled]):not(.tsStatus):not(.isOic)').length
+        let countCheckedCheckboxes = content.querySelectorAll('input[type="checkbox"]:not([disabled]):not(.tsStatus):not(.isOic):checked').length;
 
         countCheckboxes !== countCheckedCheckboxes
             ? document.getElementById("tsListFromOicContent").querySelector('input[type="checkbox"]').checked = false
@@ -68,7 +68,7 @@ export class ModalToAddAPTS extends Component {
 
     editAllCheckboxesStatesListTSFromOIC(e) {
         let content = document.getElementById("tBodyContentListFromOIC");
-        let checkboxes = content.querySelectorAll('input[type="checkbox"]:not([disabled]):not(.tsStatus)');
+        let checkboxes = content.querySelectorAll('input[type="checkbox"]:not([disabled]):not(.tsStatus):not(.isOic)');
         let countCheckedCheckboxes = 0;
         for (var i in checkboxes) {
             if (checkboxes[i].type === "checkbox") {
@@ -85,23 +85,23 @@ export class ModalToAddAPTS extends Component {
             : this.props.aptsCanBeAddHandler(false);
     }
 
-    checkAPTSisAlreadyAdded() {
-        let contentToAdd = document.getElementById("tBodyContentListFromOIC");
-        if (contentToAdd) {
-            let tsAdded = this.props.list;
+    //checkAPTSisAlreadyAdded() {
+    //    let contentToAdd = document.getElementById("tBodyContentListFromOIC");
+    //    if (contentToAdd) {
+    //        let tsAdded = this.props.list;
 
-            for (let i in tsAdded) {
-                let itemToAdd = contentToAdd.querySelector('input[oicid="' + tsAdded[i] + '"]');
-                if (itemToAdd !== null || itemToAdd !== undefined) {
-                    itemToAdd.disabled = true;
-                    itemToAdd.checked = true;
-                    $(itemToAdd).closest("tr").find(".tsStatus").prop("disabled", true);
-                    $(itemToAdd).closest("tr").addClass("addedTS"); // supported in IE and Chrome
-                    //itemToAdd.closest("tr").classList.add("addedTS"); // supported in Chrome, not - in IE 11
-                }                                        
-            }
-        }        
-    }
+    //        for (let i in tsAdded) {
+    //            let itemToAdd = contentToAdd.querySelector('input[oicid="' + tsAdded[i] + '"]');
+    //            if (itemToAdd !== null || itemToAdd !== undefined) {
+    //                itemToAdd.disabled = true;
+    //                itemToAdd.checked = true;
+    //                $(itemToAdd).closest("tr").find(".tsStatus").prop("disabled", true);
+    //                $(itemToAdd).closest("tr").addClass("addedTS"); // supported in IE and Chrome
+    //                //itemToAdd.closest("tr").classList.add("addedTS"); // supported in Chrome, but not - in IE 11
+    //            }                                        
+    //        }
+    //    }        
+    //}
 
     renderList = tsList => {
         const { deviceId } = this.props;
@@ -123,21 +123,25 @@ export class ModalToAddAPTS extends Component {
                             <th style={{ width: "700px" }}>Наименование</th>
                             <th style={{ width: "300px" }}>Энергообъект</th>
                             <th style={{ width: "170px" }}>Сигнал состояния</th>
+                            <th style={{ width: "100px" }}>ТС ОИК</th>
                         </tr>
                     </thead>
                     <tbody id="tBodyContentListFromOIC">
                         {
                             tsList.length
-                                ? tsList.map(ts => (
-                                    <tr>
+                                ? tsList.map(ts => (                                           
+                                    <tr className={ts.isAdded ? "addedTS" : ""}>
                                         <td>
-                                            <input type="checkbox" oicid={ts.oicId} name={ts.label} device={deviceId} onClick={this.getCountCheckedCheckboxesListTSFromOIC} />
+                                            <input type="checkbox" defaultChecked={ts.isAdded} oicid={ts.oicId} name={ts.label} device={deviceId} onClick={this.getCountCheckedCheckboxesListTSFromOIC} disabled={ts.isAdded ? "disabled" : false} />
                                         </td>
                                         <td>{ts.oicId}</td>
                                         <td>{ts.label}</td>
                                         <td>{ts.enObj}</td>
                                         <td className="text-center">
-                                            <input type="checkbox" className="tsStatus" defaultChecked={ts.isStatus} />
+                                            <input type="checkbox" className="tsStatus" defaultChecked={ts.isStatus} disabled={ts.isAdded ? "disabled" : false} />
+                                        </td>
+                                        <td className="text-center">
+                                            <input type="checkbox" className="isOic" defaultChecked={ts.isOic} disabled={ts.isAdded ? "disabled" : false} />
                                         </td>
                                     </tr>
                                 ))
@@ -176,7 +180,7 @@ export class ModalToAddAPTS extends Component {
                 <Modal.Body>
                     {
                         loading
-                            ? <LoaderAPTS loading={loading} />
+                            ? <LoaderAPTS />
                             : this.renderList(data)
                     }
                 </Modal.Body>
