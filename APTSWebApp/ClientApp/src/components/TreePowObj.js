@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Input, ListGroup } from 'reactstrap';
-import TreeMenu from 'react-simple-tree-menu';
+import TreeMenureac from 'react-simple-tree-menu';
 import ExportListAPTS from './ExportListAPTS';
 import { ListItem } from './ListItem';
 import LoaderAPTS from './LoaderAPTS';
@@ -34,7 +34,7 @@ export class TreePowObj extends Component {
     render() {
         let contents = this.state.loading
             ?
-            <LoaderAPTS loading={this.state.loading} />
+            <LoaderAPTS />
             :
             <>
                 <ExportListAPTS data={this.state.treeToExport} filename="TreeDeviceListTS" />
