@@ -83,21 +83,26 @@ namespace APTSWebApp.Controllers
 
             foreach (var s in oicTSs)
             {
-                var currVal = _context.ReceivedTsvalues.Where(v => v.OicTsid == s.Id)
-                    .OrderBy(v => v.Id)
-                    .Select(v => v.Val)
-                    .LastOrDefault().ToString() ?? "";
-                JObject jObject = JObject.FromObject(new
+                try
                 {
-                    key = s.Id,
-                    oicId = s.OicId,
-                    label = s.Name,
-                    isStatus = s.IsStatusTs,
-                    comment = s.Comment,
-                    isOic = s.IsOicTs,
-                    currentVal = currVal
-                });
-                list.Add(jObject);
+                    var currVal = s.ReceivedTsvalues.OrderBy(v => v.Id).Select(v => v.Val).LastOrDefault().ToString() ?? "";
+                    JObject jObject = JObject.FromObject(new
+                    {
+                        key = s.Id,
+                        oicId = s.OicId,
+                        label = s.Name,
+                        isStatus = s.IsStatusTs,
+                        comment = s.Comment,
+                        isOic = s.IsOicTs,
+                        currentVal = currVal
+                    });
+                    list.Add(jObject);
+                }
+                catch (Exception ex)
+                {
+
+                }
+                
             }
             return list.ToArray();
         }
@@ -284,22 +289,18 @@ namespace APTSWebApp.Controllers
                 foreach (var ts in _context.OicTs.Where(item => !item.IsRemoved).ToList().OrderByDescending(item => item.Id))
                 {
                     var device = _context.Devices.Where(d => !d.IsRemoved && d.Shifr == ts.DeviceShifr)
-                        .FirstOrDefault();
+                                 .FirstOrDefault();
                     var eObj = _context.PowerObjects.Where(o => !o.IsRemoved && o.Id == _context.PowerObjectDevices
-                        .Where(d => device != null && d.DeviceShifr == device.Shifr)
-                        .FirstOrDefault().PowerObjectId)
-                        .FirstOrDefault();
+                               .Where(d => device != null && d.DeviceShifr == device.Shifr)
+                               .FirstOrDefault().PowerObjectId)
+                               .FirstOrDefault();
                     var pSys = _context.PowerSystems.Where(s => !s.IsRemoved && eObj != null && s.Id == eObj.PowerSystemId)
-                        .FirstOrDefault();
+                               .FirstOrDefault();
                     var primary = _context.PrimaryEquipments.Where(p => !p.IsRemoved && p.Shifr == _context.PrimaryEquipmentDevices
-                        .Where(p => device != null && p.DeviceShifr == device.Shifr)
-                        .FirstOrDefault().PrimaryEquipmentShifr)
-                        .FirstOrDefault();
-                    var currVal = _context.ReceivedTsvalues.Where(v => v.OicTsid == ts.Id)
-                        .OrderBy(v => v.Id)
-                        .Select(v => v.Val)
-                        .LastOrDefault().ToString() ?? "";
-                    
+                                  .Where(p => device != null && p.DeviceShifr == device.Shifr)
+                                  .FirstOrDefault().PrimaryEquipmentShifr)
+                                  .FirstOrDefault();
+                    var currVal = ts.ReceivedTsvalues.OrderBy(v => v.Id).Select(v => v.Val).LastOrDefault().ToString() ?? "";
                     if (device != null && eObj != null && pSys != null && primary != null)
                     {
                         JObject jObject = JObject.FromObject(new
@@ -310,9 +311,9 @@ namespace APTSWebApp.Controllers
                             dev = device.Name,
                             tsName = ts.Name,
                             tsId = ts.OicId,
-                            isStatus = ts.IsStatusTs ? "Да" : "Нет",
+                            isStatus = ts.IsStatusTs,
                             comment = ts.Comment,
-                            isOic = ts.IsOicTs ? "Да" : "Нет",
+                            isOic = ts.IsOicTs,
                             currentVal = currVal
                         });
                         list.Add(jObject);
