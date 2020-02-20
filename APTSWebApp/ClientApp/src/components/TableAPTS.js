@@ -204,9 +204,9 @@ export default class TableAPTS extends Component {
             objToExp["device"] = this.props.deviceName;
             objToExp["tsName"] = list[i].label;
             objToExp["tsId"] = list[i].oicId;
-            objToExp["isStatus"] = list[i].isStatus;
+            objToExp["isStatus"] = list[i].isStatus ? "Да" : "Нет";
             objToExp["comment"] = list[i].comment;
-            objToExp["isOic"] = list[i].isOic;
+            objToExp["isOic"] = list[i].isOic ? "Да" : "Нет";
             objToExp["currentVal"] = list[i].currentVal;
             arrayOfObjects.push(objToExp);
         }
