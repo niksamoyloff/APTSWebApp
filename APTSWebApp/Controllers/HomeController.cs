@@ -13,6 +13,7 @@ using System.Security.Claims;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using APTSWebApp.Models;
+using System.Collections;
 
 namespace APTSWebApp.Controllers
 {
@@ -47,36 +48,51 @@ namespace APTSWebApp.Controllers
             DateTime? endDate;
             bool isArchiveMode = false;
 
-            IList<DateTime?> dateList = JsonConvert.DeserializeObject<IList<DateTime?>>(data.ToString(), new JsonSerializerSettings
+            var definition = new { sDate = "", eDate = "", viewTsRZA = "", viewTsOIC = "" };
+            var dataList = JsonConvert.DeserializeAnonymousType(data.ToString(), definition);
+            var viewTsRZA = Convert.ToBoolean(dataList.viewTsRZA);
+            var viewTsOIC = Convert.ToBoolean(dataList.viewTsOIC);
+
+            if (dataList.sDate.Length > 0 || dataList.eDate.Length > 0)
             {
-                DateFormatString = "dd.MM.yyyy"
-            });
-
-            if (dateList.Count > 0)
                 isArchiveMode = true;
+            }
+            if (dataList.sDate.Length > 0)
+                startDate = DateTime.Parse(dataList.sDate);
+            else
+                startDate = (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue;
 
-            // Добавляем по дню к датам начала и окончания по причине того, что в объект "data" поступает дата на вчерашний день (специфика работы react datepicker).
-            startDate =
-                dateList?.FirstOrDefault() != null
-                ?
-                dateList?.FirstOrDefault().GetValueOrDefault().AddDays(1)
-                :
-                (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue;
-            endDate =
-                dateList?.LastOrDefault() != null
-                ?
-                dateList?.LastOrDefault().GetValueOrDefault().AddDays(1)
-                :
-                (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue;
+            if (dataList.eDate.Length > 0)
+                endDate = DateTime.Parse(dataList.eDate);
+            else
+                endDate = (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue;           
 
             List<JObject> listObjects = new List<JObject>();
 
-            List<ReceivedTsvalues> listReceivedValues = _context.ReceivedTsvalues.OrderByDescending(ts => ts.Id).ToList();            
+            List<ReceivedTsvalues> listReceivedValues = _context.ReceivedTsvalues.ToList();
 
-            List<OicTs> listTs = _context.OicTs.Where(ts => !ts.IsRemoved && !ts.IsStatusTs).ToList();
+            List<OicTs> listTs = new List<OicTs>();
 
-            List<OicTs> listStatusTs = _context.OicTs.Where(ts => !ts.IsRemoved && ts.IsStatusTs).ToList();
+            List<OicTs> listStatusTs = new List<OicTs>();
 
+            if (!viewTsRZA && !viewTsOIC)
+                return new JObject[] { };
+            else if (!viewTsRZA)
+            {
+                listTs = _context.OicTs.Where(ts => !ts.IsRemoved && !ts.IsStatusTs && ts.IsOicTs).ToList();
+                listStatusTs = _context.OicTs.Where(ts => !ts.IsRemoved && ts.IsStatusTs && ts.IsOicTs).ToList();
+            }
+            else if (!viewTsOIC)
+            {
+                listTs = _context.OicTs.Where(ts => !ts.IsRemoved && !ts.IsStatusTs && !ts.IsOicTs).ToList();
+                listStatusTs = _context.OicTs.Where(ts => !ts.IsRemoved && ts.IsStatusTs && !ts.IsOicTs).ToList();
+            }
+            else
+            {
+                listTs = _context.OicTs.Where(ts => !ts.IsRemoved && !ts.IsStatusTs).ToList();
+                listStatusTs = _context.OicTs.Where(ts => !ts.IsRemoved && ts.IsStatusTs).ToList();
+            }
+            
             List<ReceivedTsvalues> listReceivedTsValues = listReceivedValues.Where(ts =>
                 listTs.Where(item => item.Id == ts.OicTsid).Any()
                 && ts.Val == 1
@@ -115,7 +131,8 @@ namespace APTSWebApp.Controllers
                             listOfListsValWithDiffTime.Add(listReceivedValofDev.Where(item =>
                                 item.Dt.Date == ts.Dt.Date
                                 && item.Dt.Hour == ts.Dt.Hour
-                                && item.Dt.Minute == ts.Dt.Minute).OrderByDescending(item => item.Dt).ToList() ?? new List<ReceivedTsvalues> { ts });
+                                && item.Dt.Minute == ts.Dt.Minute)
+                                .OrderByDescending(item => item.Dt).ToList() ?? new List<ReceivedTsvalues> { ts });
                         }
                     }
 
@@ -128,6 +145,7 @@ namespace APTSWebApp.Controllers
                             //primaryName = _context.PrimaryEquipments.Where(item => item.PrimaryEquipmentDevices.Where(p => p.DeviceShifr == dev.Shifr).Count() > 0).Select(item => item.Name).FirstOrDefault(),
                             tsName = _context.OicTs.Where(ts => ts.Id == subList.FirstOrDefault().OicTsid).Select(ts => ts.Name).FirstOrDefault(),                            
                             devName = dev.Name,
+                            isOicTs = _context.OicTs.Where(ts => ts.IsOicTs).Select(ts => ts.Id).ToList().Intersect(subList.Select(rTS => rTS.OicTsid)).Any() ? true : false,
                             tsList = subList
                                 .Select(item => new
                                 {
