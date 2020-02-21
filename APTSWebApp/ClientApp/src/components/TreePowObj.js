@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Input, ListGroup } from 'reactstrap';
-import TreeMenureac from 'react-simple-tree-menu';
+import TreeMenu from 'react-simple-tree-menu';
 import ExportListAPTS from './ExportListAPTS';
 import { ListItem } from './ListItem';
 import LoaderAPTS from './LoaderAPTS';
