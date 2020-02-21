@@ -85,7 +85,7 @@ export class DPicker extends React.Component {
                 />
                 <div style={{ marginLeft: '10px' }}>
                     {
-                        startDate === '' && endDate === ''
+                        (startDate === '' && endDate === '') || this.props.isDisabled
                             ?
                             <Button variant="primary" disabled>Применить</Button>                        
                             :
