@@ -26,9 +26,11 @@ export class TableMonAPTS extends Component {
             timer: false,
             data: [],
             isArchive: false,
-            loading: true
+            loading: true,
+            viewTsRZA: true,
+            viewTsOIC: false
         };
-        this.getList = this.getList.bind(this);
+        this.getData = this.getData.bind(this);
     }
 
     componentDidMount() {
@@ -51,10 +53,10 @@ export class TableMonAPTS extends Component {
         clearInterval(this.interval);
     }
 
-    startTimer() {
-        this.setState({ isArchive: false, timer: true, loading: true, data: [] });
-        this.getList();
-        this.timerID = setInterval(() => this.getList(), 30000);
+    startTimer(viewTsRZA = true, viewTsOIC = false) {
+        this.setState({ isArchive: false, timer: true, loading: true });
+        this.getData(viewTsRZA, viewTsOIC);
+        this.timerID = setInterval(() => this.getData(this.state.viewTsRZA, this.state.viewTsOIC), 30000);
     }
 
     stopTimer() {
@@ -62,9 +64,15 @@ export class TableMonAPTS extends Component {
         clearInterval(this.timerID);
     }
 
-    async getList() {
-        //this.setState({ data: [] });
-        const response = await this.fetchData('Home/GetData', []);
+    async getData(viewTsRZA, viewTsOIC) {
+        let objSend = {};
+
+        objSend["sDate"] = '';
+        objSend["eDate"] = '';
+        objSend["viewTsRZA"] = viewTsRZA;
+        objSend["viewTsOIC"] = viewTsOIC;
+
+        const response = await this.fetchData('Home/GetData', objSend);
         const list = await response.json();
         this.setState({ data: list, loading: false });  
     }
@@ -79,19 +87,39 @@ export class TableMonAPTS extends Component {
         });
     }
 
-    async callbackGetDataArchiveMode(sDate, eDate) {
+    async callbackGetDataArchiveMode(sDate, eDate, tempViewTsRZA, tempViewTsOIC) {
         this.setState({ loading: true });
-        const response = await this.fetchData('Home/GetData', [sDate, eDate]);
+
+        let objSend = {};
+        objSend["sDate"] = sDate;
+        objSend["eDate"] = eDate;
+        objSend["viewTsRZA"] = tempViewTsRZA;
+        objSend["viewTsOIC"] = tempViewTsOIC;
+
+        const response = await this.fetchData('Home/GetData', objSend);
         const list = await response.json();
         this.setState({ loading: false, data: list });
     }
 
-    callbackIsArchiveMode = (flag) => {
+    callbackIsArchiveMode = (flag, tempViewTsRZA, tempViewTsOIC) => {
         if (flag)
             this.stopTimer();
         else {
-            this.startTimer();
+            clearInterval(this.timerID);
+            this.setState({ viewTsRZA: tempViewTsRZA, viewTsOIC: tempViewTsOIC });
+            this.startTimer(tempViewTsRZA, tempViewTsOIC);
         }
+    }
+
+    getTrProps = (state, rowInfo, instance) => {
+        if (rowInfo) {
+            return {
+                style: {
+                    color: rowInfo.original.isOicTs ? 'blue' : 'black'
+                }
+            }
+        }
+        return {};
     }
 
     render() {
@@ -172,7 +200,7 @@ export class TableMonAPTS extends Component {
                                         (ТС {ts.oicId})
                                         <span>&nbsp;&nbsp;&nbsp;</span>
                                         (Значение: <b>{ts.value}</b>)
-                                        <br/>
+                                        <br />
                                         <span style={{ whiteSpace: "pre-wrap" }}>{ts.comment}</span>
                                     </div>
                                 ))
@@ -188,6 +216,7 @@ export class TableMonAPTS extends Component {
                         rowsText="строк"
                         pageSizeOptions={[10, 15, 20, 25, 50, 100]}
                         defaultPageSize={25}
+                        getTrProps={this.getTrProps}
                     />
                 </div>
             </>
