@@ -37,7 +37,7 @@ export class TreePowObj extends Component {
             <LoaderAPTS />
             :
             <>
-                <ExportListAPTS data={this.state.treeToExport} filename="TreeDeviceListTS" />
+                <ExportListAPTS data={this.state.treeToExport} filename="ExportedTreeDeviceListAPTS" />
                 <div style={{ marginTop: '5px' }}>
                     <TreeMenu data={this.state.enObjects} debounceTime={125} >
                         {({ search, items }) => (
