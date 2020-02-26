@@ -3,7 +3,7 @@ import { Button, Form } from 'react-bootstrap';
 import ModalToDeleteAPTS from './ModalToDeleteAPTS';
 import { ModalToAddAPTS } from './ModalToAddAPTS';
 import NestedModalToActionAPTS from './NestedModalToActionAPTS';
-import ExportListAPTS from './ExportListAPTS';
+import Export from './ExportListAPTS';
 import LoaderAPTS from './LoaderAPTS';
 import matchSorter from 'match-sorter'
 import PropTypes from "prop-types";
@@ -114,7 +114,7 @@ export default class TableAPTS extends Component {
         const data = { id: this.props.deviceId };
         const response = await this.fetchData('Admin/GetAPTSList', data);
         const list = await response.json();
-        this.setState({ loadingAPTS: false, aptsList: list });
+        this.setState({ loadingAPTS: false, aptsList: list, listToExport: [] });
 
         if (list.length)
             this.populateListToExport(list);
@@ -293,15 +293,11 @@ export default class TableAPTS extends Component {
         };        
     };
 
-    renderButtons = (selection, aptsListLength, listToExport) => {
+    renderButtons = (selection, listToExport) => {
         return (
             <div className="aptsListBtns">
                 <div className="float-left">
-                    {
-                        aptsListLength
-                            ? <ExportListAPTS data={listToExport} filename="DeviceListTS"/>
-                            : <Button variant="outline-success" size="sm" disabled>Excel</Button>
-                    }
+                    <Export data={listToExport} filename="ExportedDeviceListAPTS" />
                 </div>
                 <div className="float-right">
                     <Button variant="outline-primary" size="sm" onClick={this.openModalToAddHandler}>Добавить</Button>
