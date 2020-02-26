@@ -232,27 +232,20 @@ namespace APTSWebApp.Controllers
 
             if (tsCollection.Count > 0)
             {
-                try
+                foreach (DataRow row in tsCollection)
                 {
-                    foreach (DataRow row in tsCollection)
+                    var tsDB = _context.OicTs.Where(item => !item.IsRemoved && item.OicId == (int)row.ItemArray[0]).FirstOrDefault();
+                    JObject jObject = JObject.FromObject(new
                     {
-                        var tsDB = _context.OicTs.Where(item => !item.IsRemoved && item.OicId == (int)row.ItemArray[0]).FirstOrDefault();
-                        JObject jObject = JObject.FromObject(new
-                        {
-                            key = row.ItemArray[0],
-                            oicId = row.ItemArray[0],
-                            label = row.ItemArray[1],
-                            enObj = row.ItemArray[2],
-                            isStatus = tsDB != null ? tsDB.IsStatusTs : false,
-                            isAdded = tsDB != null ? true : false,
-                            isOic = tsDB != null ? tsDB.IsOicTs : false
-                        });
-                        list.Add(jObject);
-                    }
-                }
-                catch (Exception ex)
-                {
-
+                        key = row.ItemArray[0],
+                        oicId = row.ItemArray[0],
+                        label = row.ItemArray[1],
+                        enObj = row.ItemArray[2],
+                        isStatus = tsDB != null ? tsDB.IsStatusTs : false,
+                        isAdded = tsDB != null ? true : false,
+                        isOic = tsDB != null ? tsDB.IsOicTs : false
+                    });
+                    list.Add(jObject);
                 }
                 
             }
@@ -320,7 +313,7 @@ namespace APTSWebApp.Controllers
                             powSys = pSys.Name,
                             enObj = eObj.Name,
                             primary = primary.Name,
-                            dev = device.Name,
+                            device = device.Name,
                             tsName = ts.Name,
                             tsId = ts.OicId,
                             isStatus = ts.IsStatusTs ? "Да" : "Нет",
