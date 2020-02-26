@@ -28,7 +28,8 @@ export class TableMonAPTS extends Component {
             isArchive: false,
             loading: true,
             viewTsRZA: true,
-            viewTsOIC: false
+            viewTsOIC: false,
+            listToExport: []
         };
         this.getData = this.getData.bind(this);
     }
@@ -60,21 +61,46 @@ export class TableMonAPTS extends Component {
     }
 
     stopTimer() {
-        this.setState({ isArchive: true, timer: false, data: [] });
+        this.setState({ isArchive: true, timer: false, data: [], listToExport: [] });
         clearInterval(this.timerID);
     }
 
-    async getData(viewTsRZA, viewTsOIC) {
-        let objSend = {};
+    async getData(viewTsRZA, viewTsOIC, sDate, eDate) {
+        if (this.state.isArchive)
+            this.setState({ loading: true });
 
-        objSend["sDate"] = '';
-        objSend["eDate"] = '';
+        let listToExp = [];
+        let objSend = {};
+        objSend["sDate"] = sDate == undefined ? '' : sDate;
+        objSend["eDate"] = eDate == undefined ? '' : eDate;
         objSend["viewTsRZA"] = viewTsRZA;
         objSend["viewTsOIC"] = viewTsOIC;
 
         const response = await this.fetchData('Home/GetData', objSend);
         const list = await response.json();
-        this.setState({ data: list, loading: false });  
+        if (list.length)
+            listToExp = this.populateListToExport(list);
+
+        this.setState({ data: list, loading: false, listToExport: listToExp });
+    }
+
+    populateListToExport(list) {
+        let arrayOfObjects = [];
+        for (let i = 0; i < list.length; i++) {
+            let objToExp = {};
+            list[i].tsList.map(ts => {
+                objToExp["dt"] = ts.dt;
+                objToExp["tsName"] = ts.label;
+                objToExp["tsOicId"] = ts.oicId;
+                objToExp["value"] = ts.value;
+                objToExp["enObj"] = list[i].objName;
+                objToExp["device"] = list[i].devName;
+
+                arrayOfObjects.push(objToExp);
+                objToExp = {};
+            })
+        }
+        return arrayOfObjects;
     }
 
     fetchData(url = '', data = {}) {
@@ -87,18 +113,19 @@ export class TableMonAPTS extends Component {
         });
     }
 
-    async callbackGetDataArchiveMode(sDate, eDate, tempViewTsRZA, tempViewTsOIC) {
-        this.setState({ loading: true });
+    async callbackGetDataArchiveMode(tempViewTsRZA, tempViewTsOIC, sDate, eDate) {
+        //this.setState({ loading: true });
 
-        let objSend = {};
-        objSend["sDate"] = sDate;
-        objSend["eDate"] = eDate;
-        objSend["viewTsRZA"] = tempViewTsRZA;
-        objSend["viewTsOIC"] = tempViewTsOIC;
+        //let objSend = {};
+        //objSend["sDate"] = sDate;
+        //objSend["eDate"] = eDate;
+        //objSend["viewTsRZA"] = tempViewTsRZA;
+        //objSend["viewTsOIC"] = tempViewTsOIC;
 
-        const response = await this.fetchData('Home/GetData', objSend);
-        const list = await response.json();
-        this.setState({ loading: false, data: list });
+        //const response = await this.fetchData('Home/GetData', objSend);
+        //const list = await response.json();
+        //this.setState({ loading: false, data: list });
+        this.getData(tempViewTsRZA, tempViewTsOIC, sDate, eDate);
     }
 
     callbackIsArchiveMode = (flag, tempViewTsRZA, tempViewTsOIC) => {
@@ -106,7 +133,7 @@ export class TableMonAPTS extends Component {
             this.stopTimer();
         else {
             clearInterval(this.timerID);
-            this.setState({ viewTsRZA: tempViewTsRZA, viewTsOIC: tempViewTsOIC });
+            this.setState({ viewTsRZA: tempViewTsRZA, viewTsOIC: tempViewTsOIC, data: [] });
             this.startTimer(tempViewTsRZA, tempViewTsOIC);
         }
     }
@@ -123,7 +150,7 @@ export class TableMonAPTS extends Component {
     }
 
     render() {
-        const { loading, data } = this.state;
+        const { loading, data, listToExport } = this.state;
         
         const columns = [{
             Header: () => <b>Время приема ТС</b>,
@@ -174,7 +201,12 @@ export class TableMonAPTS extends Component {
         return (
             <>
                 <div className="viewMode">
-                    <ViewMode isArchiveMode={this.callbackIsArchiveMode.bind(this)} dataArchiveMode={this.callbackGetDataArchiveMode.bind(this)} />
+                    <ViewMode
+                        loading={loading}
+                        isArchiveMode={this.callbackIsArchiveMode.bind(this)}
+                        dataArchiveMode={this.callbackGetDataArchiveMode.bind(this)}
+                        listToExport={listToExport}
+                    />
                 </div>
                 <div className="d-flex">
                     <ReactTable
@@ -186,26 +218,27 @@ export class TableMonAPTS extends Component {
                         filterable
                         defaultFilterMethod={(filter, row) =>
                             String(row[filter.id]) === filter.value}
-                        SubComponent={row => {
-                            return (
-                                row.original.tsList.map(ts => (
-                                    <div key={ts.key} style={{
-                                        padding: "10px 20px",
-                                        backgroundColor: "#c4def6",
-                                        borderBottom: ts !== row.original.tsList[row.original.tsList.length - 1] ? "1px solid #f1f1f1" : ""
-                                    }}>
-                                        <em>
-                                            <b>{ts.dt}</b><span>&nbsp;&nbsp;&nbsp;</span>{ts.label}<span>&nbsp;&nbsp;&nbsp;</span>
-                                        </em>
-                                        (ТС {ts.oicId})
-                                        <span>&nbsp;&nbsp;&nbsp;</span>
-                                        (Значение: <b>{ts.value}</b>)
-                                        <br />
-                                        <span style={{ whiteSpace: "pre-wrap" }}>{ts.comment}</span>
-                                    </div>
-                                ))
-                            );
-                        }
+                        SubComponent={
+                            row => {
+                                return (
+                                    row.original.tsList.map(ts => (
+                                        <div key={ts.key} style={{
+                                            padding: "10px 20px",
+                                            backgroundColor: "#c4def6",
+                                            borderBottom: ts !== row.original.tsList[row.original.tsList.length - 1] ? "1px solid #f1f1f1" : ""
+                                        }}>
+                                            <em>
+                                                <b>{ts.dt}</b><span>&nbsp;&nbsp;&nbsp;</span>{ts.label}<span>&nbsp;&nbsp;&nbsp;</span>
+                                            </em>
+                                            (ТС {ts.oicId})
+                                            <span>&nbsp;&nbsp;&nbsp;</span>
+                                            (Значение: <b>{ts.value}</b>)
+                                            <br />
+                                            <span style={{ whiteSpace: "pre-wrap" }}>{ts.comment}</span>
+                                        </div>
+                                    ))
+                                );
+                            }
                         }
                         previousText="Предыдущая"
                         nextText="Следующая"

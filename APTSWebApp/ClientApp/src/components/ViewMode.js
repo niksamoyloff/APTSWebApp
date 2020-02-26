@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 import { Button, Dropdown, DropdownButton, Form } from 'react-bootstrap';
 import { DPicker } from './DPicker';
+import Export from './ExportListMonAPTS';
 
 const modes = ["Оперативный", "Архив"];
 
@@ -26,7 +27,7 @@ export class ViewMode extends React.Component {
     }
 
     callbackGetDataPicker = (sDate, eDate) => {
-        this.props.dataArchiveMode(sDate, eDate, this.state.viewTsRZA, this.state.viewTsOIC);
+        this.props.dataArchiveMode(this.state.viewTsRZA, this.state.viewTsOIC, sDate, eDate);
     }
 
     handleSwitch(e) {
@@ -53,8 +54,16 @@ export class ViewMode extends React.Component {
             viewTsOIC
         } = this.state;
 
+        let fileName = viewTsRZA && viewTsOIC
+            ? 'SummaryExportedListMonAPTS'
+            : viewTsRZA
+                ? 'RZAExportedListMonAPTS'
+                : viewTsOIC
+                    ? 'OICExportedListMonAPTS'
+                    : '';
+
         return (
-            <div style={{ display: 'inline-flex' }}>
+            <div style={{ display: 'inline-flex', width: '100%' }}>
                 <div style={{ margin: '5px 10px 5px 0' }}>
                     <span>
                         <b>Режим просмотра:</b>
@@ -77,7 +86,7 @@ export class ViewMode extends React.Component {
                         ? <DPicker dataPicker={this.callbackGetDataPicker.bind(this)} isDisabled={!viewTsRZA && !viewTsOIC ? true : false} />
                         :   <></>
                 }
-                <div style={{ margin: '5px 0 5px 30px' }}>
+                <div style={{ margin: '7px 0 5px 30px' }}>
                     <span>
                         <Form.Check
                             type="switch"
@@ -85,10 +94,11 @@ export class ViewMode extends React.Component {
                             id="rzaSwitch"
                             checked={viewTsRZA}
                             onChange={this.handleSwitch.bind(this)}
+                            disabled={this.props.loading ? "disabled" : false}
                         />
                     </span>
                 </div>
-                <div style={{ margin: '5px 0 5px 30px' }}>
+                <div style={{ margin: '7px 0 5px 30px' }}>
                     <span>
                         <Form.Check
                             type="switch"
@@ -96,7 +106,13 @@ export class ViewMode extends React.Component {
                             id="oicSwitch"
                             checked={viewTsOIC}
                             onChange={this.handleSwitch.bind(this)}
+                            disabled={this.props.loading ? "disabled" : false}
                         />
+                    </span>
+                </div>
+                <div style={{ margin: '5px 0 5px 30px', marginLeft: 'auto', float: 'right' }}>
+                    <span>
+                        <Export filename={fileName} data={this.props.listToExport} disabled={this.props.loading}/>
                     </span>
                 </div>
             </div>            
