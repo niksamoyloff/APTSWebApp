@@ -7,7 +7,7 @@ const ExcelColumn = ReactExport.ExcelFile.ExcelColumn;
 
 const Export = (props) => {
     return (
-        <ExcelFile filename={props.filename} element={<button className="btn btn-outline-success btn-sm">Excel</button>}>
+        <ExcelFile filename={props.filename} element={<button className="btn btn-outline-success btn-sm" disabled={!props.data.length ? "disabled" : false} >Excel</button>}>
             <ExcelSheet data={props.data} name="Лист 1">
                 <ExcelColumn label="Энергосистема" value="powSys" />
                 <ExcelColumn label="Энергообъект" value="enObj" />
