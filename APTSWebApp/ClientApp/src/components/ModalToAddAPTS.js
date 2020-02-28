@@ -15,10 +15,10 @@ export class ModalToAddAPTS extends Component {
         this.getCountCheckedCheckboxesListTSFromOIC = this.getCountCheckedCheckboxesListTSFromOIC.bind(this);
     }
 
-    //componentDidUpdate() {
-    //    if (!this.props.loading)
-    //        this.checkAPTSisAlreadyAdded();
-    //}
+    componentDidUpdate() {
+        if (!this.props.loading)
+            this.checkAPTSisAlreadyAdded();
+    }
 
     search() {
         let input = document.getElementById("searchTS");
@@ -85,23 +85,23 @@ export class ModalToAddAPTS extends Component {
             : this.props.aptsCanBeAddHandler(false);
     }
 
-    //checkAPTSisAlreadyAdded() {
-    //    let contentToAdd = document.getElementById("tBodyContentListFromOIC");
-    //    if (contentToAdd) {
-    //        let tsAdded = this.props.list;
+    checkAPTSisAlreadyAdded() {
+        let contentToAdd = document.getElementById("tBodyContentListFromOIC");
+        if (contentToAdd) {
+            let tsAdded = this.props.list;
 
-    //        for (let i in tsAdded) {
-    //            let itemToAdd = contentToAdd.querySelector('input[oicid="' + tsAdded[i] + '"]');
-    //            if (itemToAdd !== null || itemToAdd !== undefined) {
-    //                itemToAdd.disabled = true;
-    //                itemToAdd.checked = true;
-    //                $(itemToAdd).closest("tr").find(".tsStatus").prop("disabled", true);
-    //                $(itemToAdd).closest("tr").addClass("addedTS"); // supported in IE and Chrome
-    //                //itemToAdd.closest("tr").classList.add("addedTS"); // supported in Chrome, but not - in IE 11
-    //            }                                        
-    //        }
-    //    }        
-    //}
+            for (let i in tsAdded) {
+                let itemToAdd = contentToAdd.querySelector('input[oicid="' + tsAdded[i] + '"]');
+                if (itemToAdd !== null || itemToAdd !== undefined) {
+                    itemToAdd.disabled = true;
+                    itemToAdd.checked = true;
+                    $(itemToAdd).closest("tr").find(".addedTS");
+                    $(itemToAdd).closest("tr").addClass("addedTsToDevice"); // supported in IE and Chrome
+                    //itemToAdd.closest("tr").classList.add("addedTS"); // supported in Chrome, but not - in IE 11
+                }                                        
+            }
+        }        
+    }
 
     renderList = tsList => {
         const { deviceId } = this.props;
@@ -185,13 +185,17 @@ export class ModalToAddAPTS extends Component {
                     }
                 </Modal.Body>
                 <Modal.Footer>
-                    <div className="float-right">
-                        {
-                            aptsCanBeAdd
-                                ? <Button variant="success" onClick={onAdd}>Добавить</Button>
-                                : <Button variant="success" disabled>Добавить</Button>
-                        }
-                        <Button variant="secondary" onClick={onClose}>Отмена</Button>
+                    <div className="inlineDivFooter">
+                        <div className="float-left">
+                            <ul className="legend">
+                                <li><span className="legendAddedTsToDevice"></span> ТС добавлен в БД и относится к устройству РЗА</li>
+                                <li><span className="legendAddedTS"></span> ТС добавлен в БД и к устройству РЗА не относится</li>
+                            </ul>
+                        </div>
+                        <div className="float-right">
+                            <Button variant="success" onClick={onAdd} disabled={aptsCanBeAdd ? "disabled" : false}>Добавить</Button>
+                            <Button variant="secondary" onClick={onClose}>Отмена</Button>
+                        </div>
                     </div>
                 </Modal.Footer>
             </Modal>

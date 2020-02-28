@@ -15,9 +15,40 @@
 .addedTS {
     background-color: lightgreen;
 }
+.addedTsToDevice {
+    background-color: yellow;
+}
 .modalToEdit {
     max-width: 900px;
 }
 .modalToEdit .form-group {
     margin-bottom: 0;
+}
+.inlineDivFooter {
+    width: 100%;
+}
+.legend {
+    list-style: none;
+    margin-top: 5px;
+    padding-left: 10px;
+}
+
+.legend li {
+    float: left;
+    margin-right: 10px;
+}
+
+.legend span {
+    border: 1px solid #ccc;
+    float: left;
+    width: 20px;
+    height: 20px;
+    margin: 2px 5px 0 0;
+}
+.legend .legendAddedTS {
+    background-color: lightgreen;
+}
+
+.legend .legendAddedTsToDevice {
+    background-color: yellow;
 }
