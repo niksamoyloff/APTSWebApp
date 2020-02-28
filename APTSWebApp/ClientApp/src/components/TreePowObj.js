@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Input, ListGroup } from 'reactstrap';
 import TreeMenu from 'react-simple-tree-menu';
-import ExportListAPTS from './ExportListAPTS';
+import Export from './ExportListAPTS';
 import { ListItem } from './ListItem';
 import LoaderAPTS from './LoaderAPTS';
 import '../../node_modules/react-simple-tree-menu/dist/main.css';
@@ -31,21 +31,47 @@ export class TreePowObj extends Component {
         this.setState({ treeToExport: list });
     }
 
+    searchDeviceByName(val) {
+        let filter = val.toUpperCase();
+        let list = document.getElementById("devList");
+        let li = list.getElementsByTagName("li");
+        this.searchDevInDev(li, filter);
+    }
+
+    searchDevInDev(liList, filter) {
+        for (let i = 0; i < liList.length; i++) {
+            let liName = liList[i].innerText;
+
+            if (liName) {
+                if (liName.toUpperCase().indexOf(filter) > -1) {
+                    liList[i].style.display = "";
+                    let liImgs = li[i].getElementsByTagName("img");
+                    if (liImgs.length)
+                        liImg.item(0).click();
+                }
+                //else {
+                //    li[i].style.display = "none";
+                //}
+            }
+        }
+    }
+
     render() {
+        const { loading, treeToExport } = this.state;
         let contents = this.state.loading
             ?
             <LoaderAPTS />
             :
             <>
-                <ExportListAPTS data={this.state.treeToExport} filename="ExportedTreeDeviceListAPTS" />
+                <Export data={treeToExport} filename="ExportedTreeDeviceListAPTS" disabled={loading} />
                 <div style={{ marginTop: '5px' }}>
                     <TreeMenu data={this.state.enObjects} debounceTime={125} >
                         {({ search, items }) => (
                             <>
                                 {
-                                    //{<Input onChange={e => search(e.target.value)} placeholder="Поиск..." />
+                                    <Input onChange={e => search(e.target.value)} placeholder="Поиск..." />
                                 }
-                                <ListGroup>
+                                <ListGroup id="devList">
                                     {items.map(({ ...props }) => (
                                         <ListItem {...props} onClick={(e) => this.props.getKey(e, props)} />
                                     ))}
