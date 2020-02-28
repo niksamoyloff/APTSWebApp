@@ -111,13 +111,15 @@ export default class TableAPTS extends Component {
     }
     
     async getAPTSList() {
+        let listToExp = [];
         const data = { id: this.props.deviceId };
         const response = await this.fetchData('Admin/GetAPTSList', data);
         const list = await response.json();
-        this.setState({ loadingAPTS: false, aptsList: list, listToExport: [] });
 
         if (list.length)
-            this.populateListToExport(list);
+            listToExp = this.populateListToExport(list);
+        this.setState({ loadingAPTS: false, aptsList: list, listToExport: listToExp });
+
     }
 
     async getTSListFromOIC() {
@@ -194,7 +196,7 @@ export default class TableAPTS extends Component {
         });
     }
 
-    populateListToExport = (list) => {
+    populateListToExport(list){
         let arrayOfObjects = [];
         for (let i = 0; i < list.length; i++) {
             let objToExp = {};
@@ -211,8 +213,7 @@ export default class TableAPTS extends Component {
             arrayOfObjects.push(objToExp);
         }
 
-        if (arrayOfObjects.length)
-            this.setState({ listToExport: arrayOfObjects });
+        return arrayOfObjects;
     }
 
     /**
@@ -293,11 +294,11 @@ export default class TableAPTS extends Component {
         };        
     };
 
-    renderButtons = (selection, listToExport) => {
+    renderButtons = (selection, listToExport, loadingAPTS) => {
         return (
             <div className="aptsListBtns">
                 <div className="float-left">
-                    <Export data={listToExport} filename="ExportedDeviceListAPTS" />
+                    <Export data={listToExport} filename="ExportedDeviceListAPTS" disabled={loadingAPTS} />
                 </div>
                 <div className="float-right">
                     <Button variant="outline-primary" size="sm" onClick={this.openModalToAddHandler}>Добавить</Button>
@@ -360,7 +361,8 @@ export default class TableAPTS extends Component {
             showNestedModal,
             listToExport,
             selectAll,
-            selection
+            selection,
+            loadingAPTS
         } = this.state;
 
         const columns = [
@@ -416,7 +418,7 @@ export default class TableAPTS extends Component {
 
         return (
             <>
-                {this.renderButtons(selection, aptsList.length, listToExport)}
+                {this.renderButtons(selection, listToExport, loadingAPTS)}
                 {this.renderModals(showModalToAdd, showModalToEdit, showModalToDelete, showNestedModal)}
                 <div id="aptsContent">
                     <SelectTable
@@ -455,7 +457,7 @@ export default class TableAPTS extends Component {
                         freezeWhenExpanded={true}
                     />
                 </div>
-                {this.renderButtons(selection, aptsList.length, listToExport)}
+                {this.renderButtons(selection, listToExport, loadingAPTS)}
             </>
         );
     };
