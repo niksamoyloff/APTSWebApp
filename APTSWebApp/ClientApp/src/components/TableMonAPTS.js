@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import ReactTable from 'react-table';
 import { ReactTableDefaults } from 'react-table'
-import { ViewMode } from './ViewMode'
-import matchSorter from 'match-sorter'
+import { ViewMode } from './ViewMode';
+import matchSorter, { rankings } from 'match-sorter';
+import DropdownFilter from './DropdownFilter';
 import 'react-table/react-table.css';
 import './CustomTableMon.css';
 
@@ -100,6 +101,7 @@ export class TableMonAPTS extends Component {
                 objToExp = {};
             })
         }
+        console.log(arrayOfObjects);
         return arrayOfObjects;
     }
 
@@ -158,7 +160,7 @@ export class TableMonAPTS extends Component {
             minWidth: 100,
             width: 170,
             filterMethod: (filter, rows) =>
-                matchSorter(rows, filter.value, { keys: ["dt"] }),
+                matchSorter(rows, filter.value, { keys: [{ threshold: rankings.CONTAINS, key: 'dt' }] }),
             filterAll: true,
             sortMethod: (a, b) => {
                 let a1 = new Date(a).getTime();
@@ -175,16 +177,18 @@ export class TableMonAPTS extends Component {
             accessor: 'objName',
             minWidth: 200,
             width: 260,
-            filterMethod: (filter, rows) =>
-                matchSorter(rows, filter.value, { keys: ["objName"] }),
-            filterAll: true
+            filterMethod: (filter, row) => {
+                return row[filter.id] === filter.value;
+            },
+            Filter: ({ filter, onChange }) =>
+                <DropdownFilter data={data} fieldName='objName' filter={filter} onChange={onChange} />,
         }, {
             Header: () => <b>Устройство РЗА</b>, 
             accessor: 'devName',
             minWidth: 200,
             width: 570,
             filterMethod: (filter, rows) =>
-                matchSorter(rows, filter.value, { keys: ["devName"] }),
+                matchSorter(rows, filter.value, { keys: [{ threshold: rankings.CONTAINS, key: 'devName' }] }),
             filterAll: true,
             style: { 'whiteSpace': 'normal' }
         }, {
@@ -193,7 +197,7 @@ export class TableMonAPTS extends Component {
             minWidth: 200,
             width: 600,
             filterMethod: (filter, rows) =>
-                matchSorter(rows, filter.value, { keys: ["tsName"] }),
+                matchSorter(rows, filter.value, { keys: [{ threshold: rankings.CONTAINS, key: 'tsName' }] }),
             filterAll: true,
             style: { 'whiteSpace': 'normal' }
         }]
@@ -250,6 +254,12 @@ export class TableMonAPTS extends Component {
                         pageSizeOptions={[10, 15, 20, 25, 50, 100]}
                         defaultPageSize={25}
                         getTrProps={this.getTrProps}
+                        defaultSorted={[
+                            {
+                                id: 'dt',
+                                desc: false
+                            }
+                        ]}
                     />
                 </div>
             </>
