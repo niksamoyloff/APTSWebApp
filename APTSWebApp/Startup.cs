@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using APTSWebApp.Models;
+using System;
 
 namespace APTSWebApp
 {
@@ -22,8 +23,10 @@ namespace APTSWebApp
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc(options => options.EnableEndpointRouting = false)
-                .AddNewtonsoftJson();
+            services.AddMvc(options =>
+            {
+                options.EnableEndpointRouting = false;
+            }).AddNewtonsoftJson();
 
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
@@ -32,6 +35,8 @@ namespace APTSWebApp
             {
                 configuration.RootPath = "ClientApp/build";
             });
+
+            //services.AddResponseCaching();
 
             services.AddDbContext<APTS_RZA_Context>(options => options.UseSqlServer(Configuration.GetConnectionString("APTSConnection")));
         }
@@ -48,6 +53,21 @@ namespace APTSWebApp
             {
                 app.UseExceptionHandler("/Error");
             }
+
+            //app.Use(async (context, next) =>
+            //{
+            //    context.Response.GetTypedHeaders().CacheControl =
+            //        new Microsoft.Net.Http.Headers.CacheControlHeaderValue()
+            //        {
+            //            Public = true,
+            //            MaxAge = TimeSpan.FromMinutes(5)
+            //        };
+            //    context.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.Vary] =
+            //        new string[] { "Accept-Encoding" };
+
+            //    await next();
+            //});
+            //app.UseResponseCaching();
 
             app.UseStaticFiles();
             app.UseSpaStaticFiles();

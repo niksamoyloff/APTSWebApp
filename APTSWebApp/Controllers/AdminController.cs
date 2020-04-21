@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using APTSWebApp.Models;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace APTSWebApp.Controllers
 {
@@ -19,7 +20,7 @@ namespace APTSWebApp.Controllers
         private readonly APTS_RZA_Context _context;
         private readonly IConfiguration _configuration;
 
-        public AdminController(APTS_RZA_Context context, IConfiguration configuration)
+        public AdminController(APTS_RZA_Context context, IConfiguration configuration, IMemoryCache memoryCache)
         {
             _context = context;
             _configuration = configuration;
@@ -27,6 +28,7 @@ namespace APTSWebApp.Controllers
 
         // GET: Home
         [HttpGet]
+        [ResponseCache(VaryByHeader = "User-Agent", Duration = 300)]
         public JObject[] GetTree()
         {
             List<JObject> list = new List<JObject>();
@@ -38,13 +40,17 @@ namespace APTSWebApp.Controllers
                     key = s.Id,
                     label = s.Name,
                     nodes =
-                        from o in _context.PowerObjects.Where(item => !item.IsRemoved && item.PowerSystemId == s.Id && item.PowerObjectDevices.Count > 0).OrderBy(item => item.Name).ToList()
+                        from o in _context.PowerObjects
+                        .Where(item => !item.IsRemoved && item.PowerSystemId == s.Id && item.PowerObjectDevices.Count > 0)
+                        .OrderBy(item => item.Name).ToList()
                         select new
                         {
                             key = o.Id,
                             label = o.Name,
                             nodes =
-                                from p in _context.PrimaryEquipments.Where(item => !item.IsRemoved && item.PrimaryEquipmentPowerObjects.Select(i => i.PowerObjectId).Contains(o.Id)).OrderBy(item => item.Name).ToList()
+                                from p in _context.PrimaryEquipments
+                                .Where(item => !item.IsRemoved && item.PrimaryEquipmentPowerObjects.Select(i => i.PowerObjectId).Contains(o.Id))
+                                .OrderBy(item => item.Name).ToList()
                                 select new
                                 {
                                     key = p.Shifr,
@@ -77,13 +83,19 @@ namespace APTSWebApp.Controllers
 
             foreach (var s in oicTSs)
             {
+                var currVal = _context.ReceivedTsvalues.Where(v => v.OicTsid == s.Id)
+                    .OrderBy(v => v.Id)
+                    .Select(v => v.Val)
+                    .LastOrDefault().ToString() ?? "";
                 JObject jObject = JObject.FromObject(new
                 {
                     key = s.Id,
                     oicId = s.OicId,
                     label = s.Name,
                     isStatus = s.IsStatusTs,
-                    comment = s.Comment
+                    comment = s.Comment,
+                    isOic = s.IsOicTs,
+                    currentVal = currVal
                 });
                 list.Add(jObject);
             }
@@ -93,12 +105,13 @@ namespace APTSWebApp.Controllers
         [HttpPost]
         public void AddAPTS([FromBody]object data)
         {
-            var definition = new[] { new { oicid = "", name = "", device = "", isStatus = "" } };
+            var definition = new[] { new { oicid = "", name = "", device = "", isStatus = "", isOic = "" } };
             var arrDevDes = JsonConvert.DeserializeAnonymousType(data.ToString(), definition);
             int oicId;
             string devId;
             string tsName;
             bool isStatus;
+            bool isOic;
 
             List<OicTs> listToAdd = new List<OicTs>();
 
@@ -108,6 +121,7 @@ namespace APTSWebApp.Controllers
                 devId = arrDevDes[i].device.Split('/')[3];
                 tsName = arrDevDes[i].name;
                 isStatus = Convert.ToBoolean(arrDevDes[i].isStatus);
+                isOic = Convert.ToBoolean(arrDevDes[i].isOic);
 
                 OicTs ts = new OicTs
                 {
@@ -115,6 +129,7 @@ namespace APTSWebApp.Controllers
                     Name = tsName,
                     OicId = oicId,
                     IsStatusTs = isStatus,
+                    IsOicTs = isOic,
                     Comment = _context.OicTs.Where(item => item.OicId == oicId).FirstOrDefault()?.Comment ?? ""
                 };
 
@@ -184,10 +199,11 @@ namespace APTSWebApp.Controllers
         [HttpPost]
         public void EditAPTS([FromBody]object data)
         {
-            var definition = new { id = "", status = "", comment = "" };
+            var definition = new { id = "", status = "", comment = "", isOic = "" };
             var tsDes = JsonConvert.DeserializeAnonymousType(data.ToString(), definition);
             int tsOicId = Convert.ToInt32(tsDes.id);
             bool tsStatus = Convert.ToBoolean(tsDes.status);
+            bool tsOic = Convert.ToBoolean(tsDes.isOic);
             string tsComment = tsDes.comment;
 
             var tsList = _context.OicTs.Where(item => item.OicId == tsOicId).ToList();
@@ -199,6 +215,7 @@ namespace APTSWebApp.Controllers
                     {
                         ts.IsStatusTs = tsStatus;
                         ts.Comment = tsComment;
+                        ts.IsOicTs = tsOic;
                     }
                 }
                 _context.SaveChanges();
@@ -206,6 +223,7 @@ namespace APTSWebApp.Controllers
         }
 
         [HttpGet]
+        //[ResponseCache(VaryByHeader = "User-Agent", Duration = 60)]
         public JObject[] GetTSListFromOIC()
         {
             Api_OIC apiOIC = new Api_OIC(_configuration);
@@ -223,10 +241,13 @@ namespace APTSWebApp.Controllers
                         oicId = row.ItemArray[0],
                         label = row.ItemArray[1],
                         enObj = row.ItemArray[2],
-                        isStatus = tsDB != null ? tsDB.IsStatusTs : false
+                        isStatus = tsDB != null ? tsDB.IsStatusTs : false,
+                        isAdded = tsDB != null ? true : false,
+                        isOic = tsDB != null ? tsDB.IsOicTs : false
                     });
                     list.Add(jObject);
                 }
+                
             }
             return list.ToArray();
         }
@@ -264,9 +285,9 @@ namespace APTSWebApp.Controllers
         {
             List<JObject> list = new List<JObject>();
 
-            if (_context.OicTs.Count() > 0)
+            if (_context.OicTs.Any())
             {
-                foreach (var ts in _context.OicTs.Where(item => !item.IsRemoved).OrderByDescending(item => item.Id))
+                foreach (var ts in _context.OicTs.Where(item => !item.IsRemoved).ToList().OrderByDescending(item => item.Id))
                 {
                     var device = _context.Devices.Where(d => !d.IsRemoved && d.Shifr == ts.DeviceShifr)
                         .FirstOrDefault();
@@ -280,6 +301,11 @@ namespace APTSWebApp.Controllers
                         .Where(p => device != null && p.DeviceShifr == device.Shifr)
                         .FirstOrDefault().PrimaryEquipmentShifr)
                         .FirstOrDefault();
+                    var currVal = _context.ReceivedTsvalues.Where(v => v.OicTsid == ts.Id)
+                        .OrderBy(v => v.Id)
+                        .Select(v => v.Val)
+                        .LastOrDefault().ToString() ?? "";
+                    
                     if (device != null && eObj != null && pSys != null && primary != null)
                     {
                         JObject jObject = JObject.FromObject(new
@@ -287,13 +313,17 @@ namespace APTSWebApp.Controllers
                             powSys = pSys.Name,
                             enObj = eObj.Name,
                             primary = primary.Name,
-                            dev = device.Name,
+                            device = device.Name,
                             tsName = ts.Name,
-                            tsId = ts.OicId
+                            tsId = ts.OicId,
+                            isStatus = ts.IsStatusTs ? "Да" : "Нет",
+                            comment = ts.Comment,
+                            isOic = ts.IsOicTs ? "Да" : "Нет",
+                            currentVal = currVal
                         });
                         list.Add(jObject);
                     }
-                }
+                }                
             }
             return list.ToArray();
         }

@@ -3,7 +3,7 @@ import { Button, Form } from 'react-bootstrap';
 import ModalToDeleteAPTS from './ModalToDeleteAPTS';
 import { ModalToAddAPTS } from './ModalToAddAPTS';
 import NestedModalToActionAPTS from './NestedModalToActionAPTS';
-import ExportDevAPTS from './ExportDevAPTS';
+import Export from './ExportListAPTS';
 import LoaderAPTS from './LoaderAPTS';
 import matchSorter from 'match-sorter'
 import PropTypes from "prop-types";
@@ -46,7 +46,8 @@ export default class TableAPTS extends Component {
             tsOicId: '',
             commentOfEdit: '',
             actionName: '',
-            keyOfEdit: ''
+            keyOfEdit: '',
+            isOicStatus: false
         };
 
         this.getTSListFromOIC = this.getTSListFromOIC.bind(this);
@@ -110,13 +111,15 @@ export default class TableAPTS extends Component {
     }
     
     async getAPTSList() {
+        let listToExp = [];
         const data = { id: this.props.deviceId };
         const response = await this.fetchData('Admin/GetAPTSList', data);
         const list = await response.json();
-        this.setState({ loadingAPTS: false, aptsList: list });
 
         if (list.length)
-            this.populateListToExport(list);
+            listToExp = this.populateListToExport(list);
+        this.setState({ loadingAPTS: false, aptsList: list, listToExport: listToExp });
+
     }
 
     async getTSListFromOIC() {
@@ -129,7 +132,7 @@ export default class TableAPTS extends Component {
         let arrayOfObjects = [], item;
         let keys = ["oicid", "name", "device"];
         let content = document.getElementById("tBodyContentListFromOIC");
-        let checkedCheckboxes = content.querySelectorAll('input[type="checkbox"]:not(.tsStatus):checked');
+        let checkedCheckboxes = content.querySelectorAll('input[type="checkbox"]:not(.tsStatus):not(.isOic):checked');
 
         for (let i = 0; i < checkedCheckboxes.length; i++) {
             let objToAdd = {};
@@ -142,10 +145,10 @@ export default class TableAPTS extends Component {
                     }
                 }
                 let statusAttr = $(item).closest("tr").find(".tsStatus").prop("checked");
-                if (statusAttr !== undefined && statusAttr !== false)
-                    objToAdd["isStatus"] = true;
-                else
-                    objToAdd["isStatus"] = false;
+                let isOicAttr = $(item).closest("tr").find(".isOic").prop("checked");
+                
+                objToAdd["isStatus"] = statusAttr !== undefined && statusAttr !== false ? true : false;
+                objToAdd["isOic"] = isOicAttr !== undefined && isOicAttr !== false ? true : false;
                 arrayOfObjects.push(objToAdd);
             }
         }
@@ -175,8 +178,8 @@ export default class TableAPTS extends Component {
         await this.getAPTSList();
     }
 
-    async editAPTS(tsOicId, status, commentVal) {
-        const data = { id: tsOicId, status: status, comment: commentVal };
+    async editAPTS(tsOicId, isStatusTS, commentVal, isOicTS ) {
+        const data = { id: tsOicId, status: isStatusTS, comment: commentVal, isOic: isOicTS };
         await this.fetchData('Admin/EditAPTS', data);
 
         this.setState({ showModalToEdit: false, loadingAPTS: true });
@@ -193,7 +196,7 @@ export default class TableAPTS extends Component {
         });
     }
 
-    populateListToExport = (list) => {
+    populateListToExport(list){
         let arrayOfObjects = [];
         for (let i = 0; i < list.length; i++) {
             let objToExp = {};
@@ -203,11 +206,14 @@ export default class TableAPTS extends Component {
             objToExp["device"] = this.props.deviceName;
             objToExp["tsName"] = list[i].label;
             objToExp["tsId"] = list[i].oicId;
+            objToExp["isStatus"] = list[i].isStatus ? "Да" : "Нет";
+            objToExp["comment"] = list[i].comment;
+            objToExp["isOic"] = list[i].isOic ? "Да" : "Нет";
+            objToExp["currentVal"] = list[i].currentVal;
             arrayOfObjects.push(objToExp);
         }
 
-        if (arrayOfObjects.length)
-            this.setState({ listToExport: arrayOfObjects });
+        return arrayOfObjects;
     }
 
     /**
@@ -271,7 +277,8 @@ export default class TableAPTS extends Component {
                     tsOicId: rowData.oicId,
                     statusOfEdit: rowData.isStatus,
                     labelOfEdit: rowData.label,
-                    commentOfEdit: rowData.comment
+                    commentOfEdit: rowData.comment,
+                    isOicStatus: rowData.isOic
                 }, () => {
                     if (handleOriginal) {
                         handleOriginal()
@@ -287,15 +294,11 @@ export default class TableAPTS extends Component {
         };        
     };
 
-    renderButtons = (selection, aptsListLength, listToExport) => {
+    renderButtons = (selection, listToExport, loadingAPTS) => {
         return (
             <div className="aptsListBtns">
                 <div className="float-left">
-                    {
-                        aptsListLength
-                            ? <ExportDevAPTS data={listToExport} />
-                            : <Button variant="outline-success" size="sm" disabled>Excel</Button>
-                    }
+                    <Export data={listToExport} filename="ExportedDeviceListAPTS" disabled={loadingAPTS} />
                 </div>
                 <div className="float-right">
                     <Button variant="outline-primary" size="sm" onClick={this.openModalToAddHandler}>Добавить</Button>
@@ -340,6 +343,7 @@ export default class TableAPTS extends Component {
                     status={this.state.statusOfEdit}
                     label={this.state.labelOfEdit}
                     comment={this.state.commentOfEdit}
+                    isOic={this.state.isOicStatus}
                     onClose={this.closeModalToEditHandler}
                     onEdit={this.editAPTS}
                 />
@@ -357,7 +361,8 @@ export default class TableAPTS extends Component {
             showNestedModal,
             listToExport,
             selectAll,
-            selection
+            selection,
+            loadingAPTS
         } = this.state;
 
         const columns = [
@@ -365,18 +370,18 @@ export default class TableAPTS extends Component {
                 Header: () => <b>ID в ОИК</b>,
                 accessor: 'oicId',
                 minWidth: 60,
-                filterMethod: (filter, rows) =>
-                    matchSorter(rows, filter.value, { keys: ["oicId"] }),
-                filterAll: true,
+                //filterMethod: (filter, rows) =>
+                //    matchSorter(rows, filter.value, { keys: ["oicId"] }),
+                //filterAll: true,
                 headerClassName: 'wordwrap'
             },
             {
                 Header: () => <b>Наименование</b>,
                 accessor: 'label',
-                minWidth: 650,
-                filterMethod: (filter, rows) =>
-                    matchSorter(rows, filter.value, { keys: ["label"] }),
-                filterAll: true,
+                minWidth: 600,
+                //filterMethod: (filter, rows) =>
+                //    matchSorter(rows, filter.value, { keys: ["label"] }),
+                //filterAll: true,
                 style: { 'whiteSpace': 'normal' },
                 headerClassName: 'wordwrap'
             },
@@ -390,8 +395,17 @@ export default class TableAPTS extends Component {
                 headerClassName: 'wordwrap'
             },
             {
+                Header: () => <b>ТС ОИК</b>,
+                accessor: 'isOic',
+                minWidth: 50,
+                Cell: (row) => (
+                    <Form.Check defaultChecked={row.value} className="tsStatus middleItems" disabled />
+                ),
+                headerClassName: 'wordwrap'
+            },
+            {
                 Header: '',
-                minWidth: 40,
+                minWidth: 30,
                 Cell: (row) => (
                     <div className="middleItems">
                         <Button variant="link" size="lg" className="tsStatusBtnEdit" onClick={this.openModalToEditHandler}>
@@ -404,7 +418,7 @@ export default class TableAPTS extends Component {
 
         return (
             <>
-                {this.renderButtons(selection, aptsList.length, listToExport)}
+                {this.renderButtons(selection, listToExport, loadingAPTS)}
                 {this.renderModals(showModalToAdd, showModalToEdit, showModalToDelete, showNestedModal)}
                 <div id="aptsContent">
                     <SelectTable
@@ -428,7 +442,7 @@ export default class TableAPTS extends Component {
                                                     ?
                                                     <span>Примечание отсутствует.</span>
                                                     :
-                                                    <span style={{ whiteSpace: "pre" }}>{row.original.comment}</span>
+                                                    <span style={{ whiteSpace: "pre-wrap" }}>{row.original.comment}</span>
                                             }
                                         </em>
                                     </div>
@@ -439,11 +453,11 @@ export default class TableAPTS extends Component {
                         NoDataComponent={() => null}
                         showPagination={false}
                         defaultPageSize={aptsList.length !== 0 ? aptsList.length : 1}
-                        sortable={true}
+                        sortable={false}
                         freezeWhenExpanded={true}
                     />
                 </div>
-                {this.renderButtons(selection, aptsList.length, listToExport)}
+                {this.renderButtons(selection, listToExport, loadingAPTS)}
             </>
         );
     };
@@ -454,7 +468,7 @@ export default class TableAPTS extends Component {
             <div>
                 {
                     loadingAPTS
-                        ? <LoaderAPTS loading={loadingAPTS} />
+                        ? <LoaderAPTS />
                         : this.renderList(aptsList)
                 }
             </div>

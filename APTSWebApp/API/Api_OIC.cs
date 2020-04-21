@@ -96,15 +96,16 @@ namespace APTSWebApp.API
         }
         private string GetConnectionStringByHost(string host)
         {
-            if (host == new OicConnectionStringParser(OicConnectionStringMainGroup).Server)
+            string uHost = host.ToUpper();
+            if (uHost == new OicConnectionStringParser(OicConnectionStringMainGroup).Server.ToUpper())
             {
                 return OicConnectionStringMainGroup;
             }
-            else if (host == new OicConnectionStringParser(OicConnectionStringMainGroupReserve).Server)
+            else if (uHost == new OicConnectionStringParser(OicConnectionStringMainGroupReserve).Server.ToUpper())
             {
                 return OicConnectionStringMainGroupReserve;
             }
-            else if (host == new OicConnectionStringParser(OicConnectionStringReserveGroup).Server)
+            else if (uHost == new OicConnectionStringParser(OicConnectionStringReserveGroup).Server.ToUpper())
             {
                 return OicConnectionStringReserveGroup;
             }

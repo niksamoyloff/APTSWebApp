@@ -3,7 +3,8 @@ import ReactTable from 'react-table';
 import { ReactTableDefaults } from 'react-table'
 import 'react-table/react-table.css';
 import './CustomTableMon.css';
-import matchSorter from 'match-sorter'
+import matchSorter, { rankings } from 'match-sorter';
+import DropdownFilter from './DropdownFilter';
 
 //Object.assign(ReactTableDefaults, {
 //    previousText: 'Предыдущая',
@@ -49,6 +50,8 @@ export class History extends Component {
         this.setState({ loading: false, data: list });
     }
 
+
+
     render() {
         const { loading, data } = this.state;
 
@@ -56,9 +59,9 @@ export class History extends Component {
             Header: () => <b>Время</b>,
             accessor: 'dt',
             minWidth: 100,
-            width: 170,
+            width: 160,
             filterMethod: (filter, rows) =>
-                matchSorter(rows, filter.value, { keys: ["dt"] }),
+                matchSorter(rows, filter.value, { keys: [{ threshold: rankings.CONTAINS, key: 'dt' }] }),
             filterAll: true,
             sortMethod: (a, b) => {
                 let a1 = new Date(a).getTime();
@@ -74,18 +77,22 @@ export class History extends Component {
             Header: () => <b>Пользователь</b>,
             accessor: 'userName',
             minWidth: 100,
-            width: 150,
-            filterMethod: (filter, rows) =>
-                matchSorter(rows, filter.value, { keys: ["userName"] }),
-            filterAll: true
+            width: 155,
+            filterMethod: (filter, row) => {
+                return row[filter.id] === filter.value;
+            },
+            Filter: ({ filter, onChange }) =>
+                <DropdownFilter data={data} fieldName='userName' filter={filter} onChange={onChange} />,
         }, {
             Header: () => <b>Действие</b>,
             accessor: 'actionName',
             minWidth: 100,
-            width: 100,
-            filterMethod: (filter, rows) =>
-                matchSorter(rows, filter.value, { keys: ["actionName"] }),
-            filterAll: true,
+            width: 115,
+            filterMethod: (filter, row) => {
+                return row[filter.id] === filter.value;
+            },
+            Filter: ({ filter, onChange }) =>
+                <DropdownFilter data={data} fieldName='actionName' filter={filter} onChange={onChange} />,
             className: "cellTextCenter"
         }, {
             Header: () => <b>Номер ТС</b>,
@@ -93,16 +100,16 @@ export class History extends Component {
             minWidth: 50,
             width: 100,
             filterMethod: (filter, rows) =>
-                matchSorter(rows, filter.value, { keys: ["tsOicId"] }),
+                matchSorter(rows, filter.value, { keys: [{ threshold: rankings.CONTAINS, key: 'tsOicId' }] }),
             filterAll: true,
             className: "cellTextCenter"
         }, {
             Header: () => <b>Наименование ТС</b>,
             accessor: 'tsName',
             minWidth: 200,
-            width: 600,
+            width: 580,
             filterMethod: (filter, rows) =>
-                matchSorter(rows, filter.value, { keys: ["tsName"] }),
+                matchSorter(rows, filter.value, { keys: [{ threshold: rankings.CONTAINS, key: 'tsName' }] }),
             filterAll: true,
             style: { 'whiteSpace': 'normal' }
         }, {
@@ -111,7 +118,7 @@ export class History extends Component {
             minWidth: 200,
             width: 500,
             filterMethod: (filter, rows) =>
-                matchSorter(rows, filter.value, { keys: ["devName"] }),
+                matchSorter(rows, filter.value, { keys: [{ threshold: rankings.CONTAINS, key: 'devName' }] }),
             filterAll: true,
             style: { 'whiteSpace': 'normal' }
         }, {
@@ -132,7 +139,7 @@ export class History extends Component {
                     data={data}
                     //resolveData={data => data.map(row => row)}
                     columns={columns}
-                    className="-highlight tableMonLyt"
+                    className="-highlight"
                     filterable
                     defaultFilterMethod={(filter, row) =>
                         String(row[filter.id]) === filter.value}
@@ -145,6 +152,12 @@ export class History extends Component {
                     rowsText="строк"
                     pageSizeOptions={[10, 15, 20, 25, 50, 100]}
                     defaultPageSize={25}
+                    defaultSorted={[
+                        {
+                            id: 'dt',
+                            desc: false
+                        }
+                    ]}
                 />
             </div>
         )
