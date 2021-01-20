@@ -72,8 +72,8 @@ export class TableMonAPTS extends Component {
 
         let listToExp = [];
         let objSend = {};
-        objSend["sDate"] = sDate == undefined ? '' : sDate;
-        objSend["eDate"] = eDate == undefined ? '' : eDate;
+        objSend["sDate"] = sDate === undefined ? '' : sDate;
+        objSend["eDate"] = eDate === undefined ? '' : eDate;
         objSend["viewTsRZA"] = viewTsRZA;
         objSend["viewTsOIC"] = viewTsOIC;
 
@@ -99,9 +99,8 @@ export class TableMonAPTS extends Component {
 
                 arrayOfObjects.push(objToExp);
                 objToExp = {};
-            })
+            });
         }
-        console.log(arrayOfObjects);
         return arrayOfObjects;
     }
 
