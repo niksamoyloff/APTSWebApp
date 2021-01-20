@@ -24,7 +24,7 @@ export class TreePowObj extends Component {
     }
 
     async populateEnObjects() {
-        const response = await fetch('Admin/GetTree');
+        const response = await fetch('Admin/GetEquipmentTree');
         const data = await response.json();
         this.setState({ enObjects: data, loading: false });
     }    

@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { Fragment, Component } from 'react';
 import ReactTable from 'react-table';
 import { ReactTableDefaults } from 'react-table'
 import { ViewMode } from './ViewMode';
@@ -202,7 +202,7 @@ export class TableMonAPTS extends Component {
         }]
 
         return (
-            <>
+            <Fragment>
                 <div className="viewMode">
                     <ViewMode
                         loading={loading}
@@ -228,10 +228,13 @@ export class TableMonAPTS extends Component {
                                         <div key={ts.key} style={{
                                             padding: "10px 20px",
                                             backgroundColor: "#c4def6",
-                                            borderBottom: ts !== row.original.tsList[row.original.tsList.length - 1] ? "1px solid #f1f1f1" : ""
+                                            borderBottom: ts !== row.original.tsList[row.original.tsList.length - 1]
+                                                ? "1px solid #f1f1f1"
+                                                : ""
                                         }}>
                                             <em>
-                                                <b>{ts.dt}</b><span>&nbsp;&nbsp;&nbsp;</span>{ts.label}<span>&nbsp;&nbsp;&nbsp;</span>
+                                                <b>{ts.dt}</b><span>&nbsp;&nbsp;&nbsp;</span>{ts.label
+                                                }<span>&nbsp;&nbsp;&nbsp;</span>
                                             </em>
                                             (ТС {ts.oicId})
                                             <span>&nbsp;&nbsp;&nbsp;</span>
@@ -261,7 +264,7 @@ export class TableMonAPTS extends Component {
                         ]}
                     />
                 </div>
-            </>
-        )
+            </Fragment>
+        );
     }
 }
