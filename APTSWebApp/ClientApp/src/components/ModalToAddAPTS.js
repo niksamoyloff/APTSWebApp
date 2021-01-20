@@ -193,7 +193,7 @@ export class ModalToAddAPTS extends Component {
                             </ul>
                         </div>
                         <div className="float-right">
-                            <Button variant="success" onClick={onAdd} disabled={aptsCanBeAdd ? "disabled" : false}>Добавить</Button>
+                            <Button variant="success" onClick={onAdd} disabled={aptsCanBeAdd ? false : "disabled" }>Добавить</Button>
                             <Button variant="secondary" onClick={onClose}>Отмена</Button>
                         </div>
                     </div>
