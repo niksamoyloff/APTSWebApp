@@ -118,8 +118,12 @@ export default class TableAPTS extends Component {
 
         if (list.length)
             listToExp = this.populateListToExport(list);
-        this.setState({ loadingAPTS: false, aptsList: list, listToExport: listToExp });
-
+        this.setState({
+             loadingAPTS: false, 
+             aptsList: list, 
+             listToExport: listToExp,
+             aptsCanBeAdd: false
+        });
     }
 
     async getTSListFromOIC() {
@@ -153,7 +157,10 @@ export default class TableAPTS extends Component {
             }
         }
 
-        this.setState({ showModalToAdd: false, loadingAPTS: true });
+        this.setState({
+             showModalToAdd: false, 
+             loadingAPTS: true
+        });
         await this.fetchData('Admin/AddAPTS', arrayOfObjects);
         this.getAPTSList();
     }
@@ -171,7 +178,6 @@ export default class TableAPTS extends Component {
             }
             arrayOfObjects.push(objToDelete);
         }
-        console.log(arrayOfObjects);
 
         this.setState({ showModalToDelete: false, loadingAPTS: true, selectAll: false });
         await this.fetchData('Admin/DeleteAPTS', arrayOfObjects);
