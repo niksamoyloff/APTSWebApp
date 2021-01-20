@@ -1,4 +1,4 @@
-﻿import React, { Component } from 'react'
+﻿import React, { Fragment, Component } from 'react'
 import { Table, Button, Form } from 'react-bootstrap';
 import ModalToDeleteAPTS from './ModalToDeleteAPTS';
 import { ModalToAddAPTS } from './ModalToAddAPTS';
@@ -229,7 +229,7 @@ export class TableAPTS extends Component {
 
     renderModals = (showModalToDelete, showModalToAdd, showNestedModalToAdd) => {
         return (
-            <>
+            <Fragment>
                 <ModalToDeleteAPTS show={showModalToDelete} onClose={this.closeModalToDeleteHandler} onDelete={this.deleteAPTS} />
                 <ModalToAddAPTS
                     show={showModalToAdd}
@@ -244,7 +244,7 @@ export class TableAPTS extends Component {
                     enObjName={this.props.enObjName}
                 />
                 <NestedModalToAddAPTS show={showNestedModalToAdd} onAbort={this.abortNestedModalToAddHandler} onClose={this.closeNestedModalToAddHandler} />
-            </>
+            </Fragment>
         );
     };    
 
@@ -257,7 +257,7 @@ export class TableAPTS extends Component {
             listToExport
         } = this.state;
         return (
-            <>
+            <Fragment>
                 {this.renderButtons(aptsCanBeDelete, aptsList.length, listToExport)}
                 {this.renderModals(showModalToDelete, showModalToAdd, showNestedModalToAdd)}              
                 <div id="aptsContent">
@@ -308,7 +308,7 @@ export class TableAPTS extends Component {
                     </Table>
                 </div>
                 {this.renderButtons(aptsCanBeDelete, aptsList.length, listToExport)}
-            </>
+            </Fragment>
         );
     };
 

@@ -1,4 +1,4 @@
-﻿import React from "react";
+﻿import React, { Fragment } from "react";
 import DatePicker from "react-datepicker";
 import { Button, Form } from 'react-bootstrap';
 import ru from 'date-fns/locale/ru';
@@ -61,7 +61,7 @@ export class DPicker extends React.Component {
         const { startDate, endDate } = this.state;
 
         return (
-            <>
+            <Fragment>
                 <DatePicker
                     todayButton="Сегодня"
                     locale={ru}
@@ -92,8 +92,7 @@ export class DPicker extends React.Component {
                             <Button variant="primary" onClick={() => this.getDataByDate(startDate, endDate)}>Применить</Button>
                     }
                 </div>
-                
-            </>
+            </Fragment>
         );
     }
 }

@@ -1,4 +1,4 @@
-﻿import React, { Component } from 'react'
+﻿import React, { Fragment, Component } from 'react'
 import { Button, Form } from 'react-bootstrap';
 import ModalToDeleteAPTS from './ModalToDeleteAPTS';
 import { ModalToAddAPTS } from './ModalToAddAPTS';
@@ -328,7 +328,7 @@ export default class TableAPTS extends Component {
         const tsOicIdList = this.state.aptsList.map((obj) => obj.oicId);
 
         return (
-            <>
+            <Fragment>
                 <ModalToAddAPTS
                     show={showModalToAdd}
                     onClose={this.closeModalToAddHandler}
@@ -355,7 +355,7 @@ export default class TableAPTS extends Component {
                 />
                 <ModalToDeleteAPTS show={showModalToDelete} onClose={this.closeModalToDeleteHandler} onDelete={this.deleteAPTS} />
                 <NestedModalToActionAPTS show={showNestedModal} action={this.state.actionName} onAbort={this.abortNestedModalHandler} onClose={this.closeNestedModalHandler} />
-            </>
+            </Fragment>
         );
     };    
 
@@ -423,7 +423,7 @@ export default class TableAPTS extends Component {
         ];
 
         return (
-            <>
+            <Fragment>
                 {this.renderButtons(selection, listToExport, loadingAPTS)}
                 {this.renderModals(showModalToAdd, showModalToEdit, showModalToDelete, showNestedModal)}
                 <div id="aptsContent">
@@ -464,7 +464,7 @@ export default class TableAPTS extends Component {
                     />
                 </div>
                 {this.renderButtons(selection, listToExport, loadingAPTS)}
-            </>
+            </Fragment>
         );
     };
 

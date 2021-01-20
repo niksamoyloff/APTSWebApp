@@ -1,4 +1,4 @@
-﻿import React, { Component } from 'react'
+﻿import React, { Fragment, Component } from 'react'
 import { Button, Form } from 'react-bootstrap';
 import { IoIosSave, IoMdSettings } from 'react-icons/io'
 import './CustomTableAPTS.css';
@@ -40,11 +40,11 @@ export class EditAPTS extends Component {
     render() {
         const { isStatusTs } = this.state;
         return (
-            <>
+            <Fragment>
                 <Button variant="link" size="lg" className="tsStatusBtnEdit"  onClick={this.editTsStatusHandler}>
                     <IoMdSettings />
                 </Button>
-            </>
+            </Fragment>
         );
     }
 }
