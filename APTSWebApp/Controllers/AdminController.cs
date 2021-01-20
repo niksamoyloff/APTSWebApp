@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using APTSWebApp.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace APTSWebApp.Controllers
@@ -28,13 +29,27 @@ namespace APTSWebApp.Controllers
 
         // GET: Home
         [HttpGet]
-        public JObject[] GetEquipmentTree()
+        public async Task<JObject[]> GetEquipmentTreeAsync()
         {
             var list = new List<JObject>();
-            var ps = _context.PowerSystems.Where(s => !s.IsRemoved).ToList();
-            var po = _context.PowerObjects.Where(o => !o.IsRemoved && o.PowerObjectDevices.Any()).ToList();
-            var pe = _context.PrimaryEquipments.Where(e => !e.IsRemoved && e.PrimaryEquipmentDevices.Any()).ToList();
-            var dev = _context.Devices.Where(d => !d.IsRemoved && d.PowerObjectDevices.Any() && d.PrimaryEquipmentDevices.Any()).ToList();
+            var ps = await _context.PowerSystems
+                .Where(s => !s.IsRemoved)
+                .AsNoTracking()
+                .ToListAsync();
+            var po = await _context.PowerObjects
+                .Where(o => !o.IsRemoved && o.PowerObjectDevices.Any() && o.PrimaryEquipmentPowerObjects.Any())
+                .AsNoTracking()
+                .ToListAsync();
+            var pe = await _context.PrimaryEquipments
+                .Where(e => !e.IsRemoved && e.PrimaryEquipmentPowerObjects.Any())
+                .Include(e => e.PrimaryEquipmentPowerObjects)
+                .AsNoTracking()
+                .ToListAsync();
+            var dev = await _context.Devices
+                .Where(d => !d.IsRemoved && d.PowerObjectDevices.Any())
+                .Include(d => d.PowerObjectDevices)
+                .AsNoTracking()
+                .ToListAsync();
 
             foreach (var s in ps)
             {
@@ -42,31 +57,30 @@ namespace APTSWebApp.Controllers
                 {
                     key = s.Id,
                     label = s.Name,
-                    nodes =
-                        po.Where(o => o.PowerSystemId == s.Id)
-                        .OrderBy(o => o.Name).Select(o =>
-                        new
+                    nodes = po.Where(o => o.PowerSystemId == s.Id)
+                        .OrderBy(o => o.Name)
+                        .Select(o => new
                         {
                             key = o.Id,
                             label = o.Name,
                             nodes = pe.Where(item => item.PrimaryEquipmentPowerObjects
-                                    .Any(i => i.PowerObjectId == o.Id))
+                                        .Any(i => i.PowerObjectId == o.Id)
+                                    )
                                     .OrderBy(item => item.Name)
-                                    .Select(p =>
-                                        new
-                                        {
-                                            key = p.Shifr,
-                                            label = p.Name,
-                                            nodes = dev.Where(item => item.PowerObjectDevices
-                                                    .Any(i => i.PowerObjectId == o.Id))
-                                                    .OrderBy(item => item.Name)
-                                                    .Select(d =>
-                                                        new
-                                                        {
-                                                            key = d.Shifr,
-                                                            label = d.Name
-                                                        })
-                                        })
+                                    .Select(p => new
+                                    {
+                                        key = p.Shifr,
+                                        label = p.Name,
+                                        nodes = dev.Where(item => item.PowerObjectDevices
+                                                .Any(i => i.PowerObjectId == o.Id)
+                                            )
+                                            .OrderBy(item => item.Name)
+                                            .Select(d => new
+                                            {
+                                                key = d.Shifr,
+                                                label = d.Name
+                                            })
+                                    })
                         })
                 });
                 list.Add(jObject);
@@ -75,7 +89,7 @@ namespace APTSWebApp.Controllers
         }
 
         [HttpPost]
-        public JObject[] GetAPTSList([FromBody]object data)
+        public JObject[] GetAPTSList([FromBody] object data)
         {
             var definition = new { id = "" };
             var devDes = JsonConvert.DeserializeAnonymousType(data.ToString(), definition);
@@ -105,7 +119,7 @@ namespace APTSWebApp.Controllers
         }
 
         [HttpPost]
-        public void AddAPTS([FromBody]object data)
+        public void AddAPTS([FromBody] object data)
         {
             var definition = new[] { new { oicid = "", name = "", device = "", isStatus = "", isOic = "" } };
             var arrDevDes = JsonConvert.DeserializeAnonymousType(data.ToString() ?? string.Empty, definition);
@@ -142,7 +156,7 @@ namespace APTSWebApp.Controllers
         }
 
         [HttpPost]
-        public void DeleteAPTS([FromBody]object data)
+        public void DeleteAPTS([FromBody] object data)
         {
             var definition = new[] { new { id = "" } };
             var arrDevDes = JsonConvert.DeserializeAnonymousType(data.ToString() ?? string.Empty, definition);
@@ -194,7 +208,7 @@ namespace APTSWebApp.Controllers
         }
 
         [HttpPost]
-        public void EditAPTS([FromBody]object data)
+        public void EditAPTS([FromBody] object data)
         {
             var definition = new { id = "", status = "", comment = "", isOic = "" };
             var tsDes = JsonConvert.DeserializeAnonymousType(data.ToString(), definition);
@@ -244,7 +258,7 @@ namespace APTSWebApp.Controllers
                     });
                     list.Add(jObject);
                 }
-                
+
             }
             return list.ToArray();
         }
@@ -288,23 +302,23 @@ namespace APTSWebApp.Controllers
                 {
                     var device = _context.Devices
                         .FirstOrDefault(d => !d.IsRemoved && d.Shifr == ts.DeviceShifr);
-                    
+
                     var eObj = _context.PowerObjects
                         .FirstOrDefault(o => !o.IsRemoved && o.Id == _context.PowerObjectDevices
                             .FirstOrDefault(d => device != null && d.DeviceShifr == device.Shifr).PowerObjectId);
-                    
+
                     var pSys = _context.PowerSystems
                         .FirstOrDefault(s => !s.IsRemoved && eObj != null && s.Id == eObj.PowerSystemId);
-                    
+
                     var primary = _context.PrimaryEquipments
                         .FirstOrDefault(p => !p.IsRemoved && p.Shifr == _context.PrimaryEquipmentDevices
                             .FirstOrDefault(p => device != null && p.DeviceShifr == device.Shifr).PrimaryEquipmentShifr);
-                    
+
                     var currentVal = _context.ReceivedTsvalues.Where(v => v.OicTsid == ts.Id)
                         .OrderBy(v => v.Id)
                         .Select(v => v.Val)
                         .LastOrDefault().ToString() ?? "";
-                    
+
                     if (device != null && eObj != null && pSys != null && primary != null)
                     {
                         JObject jObject = JObject.FromObject(new
@@ -322,7 +336,7 @@ namespace APTSWebApp.Controllers
                         });
                         list.Add(jObject);
                     }
-                }                
+                }
             }
             return list.ToArray();
         }
