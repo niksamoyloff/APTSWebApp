@@ -94,14 +94,14 @@ namespace APTSWebApp.Controllers
             }
             
             List<ReceivedTsvalues> listReceivedTsValues = listReceivedValues.Where(ts =>
-                listTs.Where(item => item.Id == ts.OicTsid).Any()
+                listTs.Any(item => item.Id == ts.OicTsid)
                 && ts.Val == 1
                 && ts.Dt.Date >= startDate.Value.Date
                 && ts.Dt.Date <= endDate.Value.Date
                 ).ToList();
 
             List<ReceivedTsvalues> listReceivedStatusTsValues = listReceivedValues.Where(ts =>
-                listStatusTs.Where(item => item.Id == ts.OicTsid).Any()
+                listStatusTs.Any(item => item.Id == ts.OicTsid)
                 && ts.Dt.Date >= startDate.Value.Date
                 && ts.Dt.Date <= endDate.Value.Date
                 ).ToList();
@@ -116,7 +116,7 @@ namespace APTSWebApp.Controllers
 
             foreach (var dev in _context.Devices.Where(d => !d.IsRemoved))
             {
-                if (_context.OicTs.Where(item => item.DeviceShifr == dev.Shifr).Any())
+                if (_context.OicTs.Any(item => item.DeviceShifr == dev.Shifr))
                 {
                     var tsListOfDevices = _context.OicTs.Where(i => i.DeviceShifr == dev.Shifr).Select(i => i.Id).ToList();
 
@@ -141,7 +141,7 @@ namespace APTSWebApp.Controllers
                         JObject jObject = JObject.FromObject(new
                         {
                             dt = subList.FirstOrDefault().Dt.ToString("dd.MM.yyyy HH:mm:ss"),
-                            objName = _context.PowerObjects.Where(item => item.PowerObjectDevices.Where(i => i.DeviceShifr == dev.Shifr).Count() > 0).Select(o => o.Name).FirstOrDefault(),
+                            objName = _context.PowerObjects.Where(item => item.PowerObjectDevices.Count(i => i.DeviceShifr == dev.Shifr) > 0).Select(o => o.Name).FirstOrDefault(),
                             //primaryName = _context.PrimaryEquipments.Where(item => item.PrimaryEquipmentDevices.Where(p => p.DeviceShifr == dev.Shifr).Count() > 0).Select(item => item.Name).FirstOrDefault(),
                             tsName = _context.OicTs.Where(ts => ts.Id == subList.FirstOrDefault().OicTsid).Select(ts => ts.Name).FirstOrDefault(),                            
                             devName = dev.Name,
@@ -150,7 +150,7 @@ namespace APTSWebApp.Controllers
                                 .Select(item => new
                                 {
                                     key = item.Id,
-                                    oicId = _context.OicTs.Where(ts => ts.Id == item.OicTsid).FirstOrDefault().OicId,
+                                    oicId = _context.OicTs.FirstOrDefault(ts => ts.Id == item.OicTsid).OicId,
                                     dt = item.Dt.ToString("dd.MM.yyyy HH:mm:ss"),
                                     label = _context.OicTs.Where(ts => ts.Id == item.OicTsid).Select(ts => ts.Name).FirstOrDefault(),
                                     comment = _context.OicTs.Where(ts => ts.Id == subList.FirstOrDefault().OicTsid).Select(ts => ts.Comment).FirstOrDefault(),
@@ -161,7 +161,7 @@ namespace APTSWebApp.Controllers
                     }
                 }
             }
-            return listObjects?.OrderByDescending(o => DateTime.ParseExact(o.GetValue("dt").ToString(), "dd.MM.yyyy HH:mm:ss", null)).ToArray();
+            return listObjects.OrderByDescending(o => DateTime.ParseExact(o.GetValue("dt").ToString(), "dd.MM.yyyy HH:mm:ss", null)).ToArray();
         }
         [HttpGet]
         public string GetUserName()
