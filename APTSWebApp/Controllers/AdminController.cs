@@ -28,7 +28,7 @@ namespace APTSWebApp.Controllers
 
         // GET: Home
         [HttpGet]
-        public JObject[] GetTree()
+        public JObject[] GetEquipmentTree()
         {
             var list = new List<JObject>();
             var ps = _context.PowerSystems.Where(s => !s.IsRemoved).ToList();
