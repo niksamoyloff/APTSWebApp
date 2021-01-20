@@ -1,4 +1,4 @@
-﻿import React from 'react';
+﻿import React, { Fragment } from 'react';
 import { Button, Dropdown, DropdownButton, Form } from 'react-bootstrap';
 import { DPicker } from './DPicker';
 import Export from './ExportListMonAPTS';
@@ -84,7 +84,7 @@ export class ViewMode extends React.Component {
                 {
                     isArchive
                         ? <DPicker dataPicker={this.callbackGetDataPicker.bind(this)} isDisabled={!viewTsRZA && !viewTsOIC ? true : false} />
-                        :   <></>
+                        : <Fragment></Fragment>
                 }
                 <div style={{ margin: '7px 0 5px 30px' }}>
                     <span>
@@ -117,5 +117,5 @@ export class ViewMode extends React.Component {
                 </div>
             </div>            
         );
-    };
+    }
 }
