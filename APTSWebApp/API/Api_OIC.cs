@@ -44,7 +44,7 @@ namespace APTSWebApp.API
                 .Distinct()
                 .ToList();
 
-            await using var sqlConnection = new SqlConnection(GetConnectionString());
+            await using var sqlConnection = new SqlConnection(await GetConnectionStringAsync());
             await using var sqlCommand = new SqlCommand(SqlQueryBuild(typeParams, nameParams), sqlConnection);
             try
             {
@@ -61,44 +61,34 @@ namespace APTSWebApp.API
                 return null;
             }
         }
-        private string GetConnectionString()
+        private async Task<string> GetConnectionStringAsync()
         {
             string host;
 
-            if ((host = GetActiveHost(OicConnectionStringMainGroup)) != null)
+            if ((host = await GetActiveHostAsync(OicConnectionStringMainGroup)) != null)
             {
                 return GetConnectionStringByHost(host);
             }
-            else if ((host = GetActiveHost(OicConnectionStringMainGroupReserve)) != null)
+
+            if ((host = await GetActiveHostAsync(OicConnectionStringMainGroupReserve)) != null)
             {
                 return GetConnectionStringByHost(host);
             }
-            else if ((host = GetActiveHost(OicConnectionStringReserveGroup)) != null)
+
+            return (host = await GetActiveHostAsync(OicConnectionStringReserveGroup)) != null ? GetConnectionStringByHost(host) : null;
+        }
+        private static async Task<string> GetActiveHostAsync(string connectionString)
+        {
+            await using var sqlConnection = new SqlConnection(connectionString);
+            await using var sqlCommand = new SqlCommand("select oik.dbo.fn_getmainoikservername()", sqlConnection);
+            try
             {
-                return GetConnectionStringByHost(host);
+                await sqlConnection.OpenAsync();
+                return sqlCommand.ExecuteScalar().ToString();
             }
-            else
+            catch (Exception)
             {
                 return null;
-            }
-        }
-        private string GetActiveHost(string connectionString)
-        {
-            using (SqlConnection sqlConnection = new SqlConnection(connectionString))
-            {
-                using (SqlCommand sqlCommand = new SqlCommand("select oik.dbo.fn_getmainoikservername()", sqlConnection))
-                {
-                    try
-                    {
-                        sqlConnection.Open();
-                        return sqlCommand.ExecuteScalar().ToString();
-                    }
-                    catch (Exception e)
-                    {
-                        string msg = e.ToString();
-                        return null;
-                    }
-                }
             }
         }
         private string GetConnectionStringByHost(string host)
