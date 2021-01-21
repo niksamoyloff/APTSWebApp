@@ -7,89 +7,24 @@ namespace APTSWebApp.API
 {
     public class OicConnectionStringParser
     {
-        private Dictionary<string, string> fields;
+        private readonly Dictionary<string, string> _fields;
 
-        public string Server
-        {
-            get
-            {
-                if (fields.ContainsKey("Server"))
-                {
-                    return fields["Server"];
-                }
-                else
-                {
-                    return null;
-                }
-            }
-        }
-        public string Database
-        {
-            get
-            {
-                if (fields.ContainsKey("Database"))
-                {
-                    return fields["Database"];
-                }
-                else
-                {
-                    return null;
-                }
-            }
-        }
-        public string UserID
-        {
-            get
-            {
-                if (fields.ContainsKey("User Id"))
-                {
-                    return fields["User Id"];
-                }
-                else
-                {
-                    return null;
-                }
-            }
-        }
-        public string Password
-        {
-            get
-            {
-                if (fields.ContainsKey("Password"))
-                {
-                    return fields["Password"];
-                }
-                else
-                {
-                    return null;
-                }
-            }
-        }
-        public string IntegratedSecurity
-        {
-            get
-            {
-                if (fields.ContainsKey("Integrated Security"))
-                {
-                    return fields["Integrated Security"];
-                }
-                else
-                {
-                    return null;
-                }
-            }
-        }
+        public string Server => _fields.ContainsKey("Server") ? _fields["Server"] : null;
+
+        public string Database => _fields.ContainsKey("Database") ? _fields["Database"] : null;
+
+        public string UserId => _fields.ContainsKey("User Id") ? _fields["User Id"] : null;
+
+        public string Password => _fields.ContainsKey("Password") ? _fields["Password"] : null;
+
+        public string IntegratedSecurity => _fields.ContainsKey("Integrated Security") ? _fields["Integrated Security"] : null;
 
         public OicConnectionStringParser(string connectionString)
         {
-            try
-            {
-                fields = connectionString.Split(';').ToDictionary(s => s.Split('=')[0], s => s.Split('=')[1]);
-            }
-            catch (Exception exception)
-            {
-                throw exception;
-            }
+            _fields = connectionString
+                .Split(';')
+                .ToDictionary(s => s.Split('=')[0], 
+                    s => s.Split('=')[1]);
         }
     }
 }
