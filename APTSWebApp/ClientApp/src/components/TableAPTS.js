@@ -1,7 +1,7 @@
 ﻿import React, { Fragment, Component } from 'react'
 import { Button, Form } from 'react-bootstrap';
 import ModalToDeleteAPTS from './ModalToDeleteAPTS';
-import { ModalToAddAPTS } from './ModalToAddAPTS';
+import { ModalToAddApts } from './ModalToAddApts';
 import NestedModalToActionAPTS from './NestedModalToActionAPTS';
 import Export from './ExportListAPTS';
 import LoaderAPTS from './LoaderAPTS';
@@ -52,7 +52,7 @@ export default class TableAPTS extends Component {
 
         this.getTSListFromOIC = this.getTSListFromOIC.bind(this);
         this.deleteAPTS = this.deleteAPTS.bind(this);
-        this.addAPTS = this.addAPTS.bind(this);
+        this.AddApts = this.AddApts.bind(this);
         this.editAPTS = this.editAPTS.bind(this);
     }
 
@@ -132,7 +132,7 @@ export default class TableAPTS extends Component {
         this.setState({ loadingTsFromOIC: false, tsListFromOIC: list });
     }
 
-    async addAPTS() {
+    async AddApts() {
         let arrayOfObjects = [], item;
         let keys = ["oicid", "name", "device"];
         let content = document.getElementById("tBodyContentListFromOIC");
@@ -161,7 +161,7 @@ export default class TableAPTS extends Component {
              showModalToAdd: false, 
              loadingAPTS: true
         });
-        await this.fetchData('Admin/AddAPTS', arrayOfObjects);
+        await this.fetchData('Admin/AddApts', arrayOfObjects);
         this.GetAptsList();
     }
 
@@ -329,10 +329,10 @@ export default class TableAPTS extends Component {
 
         return (
             <Fragment>
-                <ModalToAddAPTS
+                <ModalToAddApts
                     show={showModalToAdd}
                     onClose={this.closeModalToAddHandler}
-                    onAdd={this.addAPTS}
+                    onAdd={this.AddApts}
                     data={this.state.tsListFromOIC}
                     loading={this.state.loadingTsFromOIC}
                     deviceId={this.props.deviceId}

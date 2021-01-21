@@ -4,7 +4,7 @@ import './CustomModal.css';
 import $ from 'jquery'
 import LoaderAPTS from './LoaderAPTS';
 
-export class ModalToAddAPTS extends Component {
+export class ModalToAddApts extends Component {
 
     constructor(props) {
         super(props);

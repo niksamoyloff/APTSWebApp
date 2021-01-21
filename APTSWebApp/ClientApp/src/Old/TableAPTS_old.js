@@ -1,8 +1,8 @@
 ﻿import React, { Fragment, Component } from 'react'
 import { Table, Button, Form } from 'react-bootstrap';
 import ModalToDeleteAPTS from './ModalToDeleteAPTS';
-import { ModalToAddAPTS } from './ModalToAddAPTS';
-import NestedModalToAddAPTS from './NestedModalToAddAPTS';
+import { ModalToAddApts } from './ModalToAddApts';
+import NestedModalToAddApts from './NestedModalToAddApts';
 import $ from 'jquery'
 import ExportDevAPTS from './ExportDevAPTS';
 import { EditAPTS } from './EditAPTS';
@@ -31,7 +31,7 @@ export class TableAPTS extends Component {
         //this.editAllCheckboxesStatesListAPTS = this.editAllCheckboxesStatesListAPTS.bind(this);
         //this.handlerStateAPTStoBeAdd = this.handlerStateAPTStoBeAdd.bind(this);
         this.deleteAPTS = this.deleteAPTS.bind(this);
-        this.addAPTS = this.addAPTS.bind(this);
+        this.AddApts = this.AddApts.bind(this);
         this.getTSListFromOIC = this.getTSListFromOIC.bind(this);
     }
 
@@ -95,7 +95,7 @@ export class TableAPTS extends Component {
         this.setState({ loadingTsFromOIC: false, tsListFromOIC: list });
     }
 
-    async addAPTS() {
+    async AddApts() {
         let arrayOfObjects = [], item;
         let keys = ["oicid", "name", "device"];
         let content = document.getElementById("tBodyContentListFromOIC");
@@ -121,7 +121,7 @@ export class TableAPTS extends Component {
         }
 
         this.setState({ showModalToAdd: false, aptsCanBeDelete: false, loadingAPTS: true });
-        await this.fetchData('Admin/AddAPTS', arrayOfObjects);
+        await this.fetchData('Admin/AddApts', arrayOfObjects);
         this.GetAptsList();
     }
 
@@ -231,10 +231,10 @@ export class TableAPTS extends Component {
         return (
             <Fragment>
                 <ModalToDeleteAPTS show={showModalToDelete} onClose={this.closeModalToDeleteHandler} onDelete={this.deleteAPTS} />
-                <ModalToAddAPTS
+                <ModalToAddApts
                     show={showModalToAdd}
                     onClose={this.closeModalToAddHandler}
-                    onAdd={this.addAPTS}
+                    onAdd={this.AddApts}
                     data={this.state.tsListFromOIC}
                     loading={this.state.loadingTsFromOIC}
                     deviceId={this.props.deviceId}
@@ -243,7 +243,7 @@ export class TableAPTS extends Component {
                     deviceName={this.props.deviceName}
                     enObjName={this.props.enObjName}
                 />
-                <NestedModalToAddAPTS show={showNestedModalToAdd} onAbort={this.abortNestedModalToAddHandler} onClose={this.closeNestedModalToAddHandler} />
+                <NestedModalToAddApts show={showNestedModalToAdd} onAbort={this.abortNestedModalToAddHandler} onClose={this.closeNestedModalToAddHandler} />
             </Fragment>
         );
     };    

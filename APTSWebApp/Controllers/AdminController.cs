@@ -125,7 +125,7 @@ namespace APTSWebApp.Controllers
         }
 
         [HttpPost]
-        public void AddAPTS([FromBody] object data)
+        public async Task AddAptsAsync([FromBody] object data)
         {
             var definition = new[] { new { oicid = "", name = "", device = "", isStatus = "", isOic = "" } };
             var arrDevDes = JsonConvert.DeserializeAnonymousType(data.ToString() ?? string.Empty, definition);
@@ -149,7 +149,9 @@ namespace APTSWebApp.Controllers
                     OicId = oicId,
                     IsStatusTs = isStatus,
                     IsOicTs = isOic,
-                    Comment = _context.OicTs.FirstOrDefault(item => item.OicId == oicId)?.Comment ?? ""
+                    Comment = _context.OicTs
+                        .AsNoTracking()
+                        .FirstOrDefault(item => item.OicId == oicId)?.Comment ?? ""
                 };
                 listToAdd.Add(ts);
             }
@@ -157,8 +159,8 @@ namespace APTSWebApp.Controllers
             if (!listToAdd.Any()) return;
 
             AddAction(listToAdd, "Добавил");
-            _context.OicTs.AddRange(listToAdd);
-            _context.SaveChanges();
+            await _context.OicTs.AddRangeAsync(listToAdd);
+            await _context.SaveChangesAsync();
         }
 
         [HttpPost]
