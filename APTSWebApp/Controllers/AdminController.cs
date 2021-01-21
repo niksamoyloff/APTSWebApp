@@ -158,7 +158,7 @@ namespace APTSWebApp.Controllers
 
             if (!listToAdd.Any()) return;
 
-            AddAction(listToAdd, "Добавил");
+            await AddActionAsync(listToAdd, "Добавил");
             await _context.OicTs.AddRangeAsync(listToAdd);
             await _context.SaveChangesAsync();
         }
@@ -180,23 +180,35 @@ namespace APTSWebApp.Controllers
 
             if (listToDelete.Count > 0)
             {
-                AddAction(listToDelete, "Удалил");
+                await AddActionAsync(listToDelete, "Удалил");
                 _context.OicTs.RemoveRange(listToDelete);
                 await _context.SaveChangesAsync();
             }
         }
 
-        private void AddAction(List<OicTs> list, string actionName)
+        private async Task AddActionAsync(List<OicTs> list, string actionName)
         {
-            List<Actions> listActions = new List<Actions>();
+            var listAction = new List<Actions>();
 
             if (list?.Count > 0)
             {
                 foreach (var ts in list)
                 {
-                    var device = _context.Devices.FirstOrDefault(item => item.Shifr == ts.DeviceShifr);
-                    var primary = _context.PrimaryEquipments.FirstOrDefault(item => item.Shifr == _context.PrimaryEquipmentDevices.FirstOrDefault(p => p.DeviceShifr == device.Shifr).PrimaryEquipmentShifr);
-                    var obj = _context.PowerObjects.FirstOrDefault(item => item.Id == _context.PowerObjectDevices.FirstOrDefault(d => d.DeviceShifr == device.Shifr).PowerObjectId);
+                    var device = _context.Devices
+                        .AsNoTracking()
+                        .FirstOrDefault(item => item.Shifr == ts.DeviceShifr);
+                    var primary = _context.PrimaryEquipments
+                        .AsNoTracking()
+                        .FirstOrDefault(item => item.Shifr == _context.PrimaryEquipmentDevices
+                            .FirstOrDefault(p => p.DeviceShifr == device.Shifr)
+                            .PrimaryEquipmentShifr
+                        );
+                    var obj = _context.PowerObjects
+                        .AsNoTracking()
+                        .FirstOrDefault(item => item.Id == _context.PowerObjectDevices
+                            .FirstOrDefault(d => d.DeviceShifr == device.Shifr)
+                            .PowerObjectId
+                        );
                     var action = new Actions
                     {
                         ActionName = actionName,
@@ -208,9 +220,9 @@ namespace APTSWebApp.Controllers
                         PowerObjectName = obj?.Name,
                         TsOicId = ts.OicId.ToString()
                     };
-                    listActions.Add(action);
+                    listAction.Add(action);
                 }
-                _context.Actions.AddRange(listActions);
+                await _context.Actions.AddRangeAsync(listAction);
             }
         }
 
