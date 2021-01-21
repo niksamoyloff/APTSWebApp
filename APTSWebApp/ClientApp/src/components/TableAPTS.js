@@ -1,6 +1,6 @@
 ﻿import React, { Fragment, Component } from 'react'
 import { Button, Form } from 'react-bootstrap';
-import ModalToDeleteAPTS from './ModalToDeleteAPTS';
+import ModalToDeleteApts from './ModalToDeleteApts';
 import { ModalToAddApts } from './ModalToAddApts';
 import NestedModalToActionAPTS from './NestedModalToActionAPTS';
 import Export from './ExportListAPTS';
@@ -51,7 +51,7 @@ export default class TableAPTS extends Component {
         };
 
         this.getTSListFromOIC = this.getTSListFromOIC.bind(this);
-        this.deleteAPTS = this.deleteAPTS.bind(this);
+        this.DeleteApts = this.DeleteApts.bind(this);
         this.AddApts = this.AddApts.bind(this);
         this.editAPTS = this.editAPTS.bind(this);
     }
@@ -165,7 +165,7 @@ export default class TableAPTS extends Component {
         this.GetAptsList();
     }
 
-    async deleteAPTS() {
+    async DeleteApts() {
         let arrayOfObjects = [], item;
         let selection = [...this.state.selection];
         let key = "id";
@@ -180,7 +180,7 @@ export default class TableAPTS extends Component {
         }
 
         this.setState({ showModalToDelete: false, loadingAPTS: true, selectAll: false });
-        await this.fetchData('Admin/DeleteAPTS', arrayOfObjects);
+        await this.fetchData('Admin/DeleteApts', arrayOfObjects);
         await this.GetAptsList();
     }
 
@@ -353,7 +353,7 @@ export default class TableAPTS extends Component {
                     onClose={this.closeModalToEditHandler}
                     onEdit={this.editAPTS}
                 />
-                <ModalToDeleteAPTS show={showModalToDelete} onClose={this.closeModalToDeleteHandler} onDelete={this.deleteAPTS} />
+                <ModalToDeleteApts show={showModalToDelete} onClose={this.closeModalToDeleteHandler} onDelete={this.DeleteApts} />
                 <NestedModalToActionAPTS show={showNestedModal} action={this.state.actionName} onAbort={this.abortNestedModalHandler} onClose={this.closeNestedModalHandler} />
             </Fragment>
         );

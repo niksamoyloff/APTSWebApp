@@ -1,6 +1,6 @@
 ﻿import React, { Fragment, Component } from 'react'
 import { Table, Button, Form } from 'react-bootstrap';
-import ModalToDeleteAPTS from './ModalToDeleteAPTS';
+import ModalToDeleteApts from './ModalToDeleteApts';
 import { ModalToAddApts } from './ModalToAddApts';
 import NestedModalToAddApts from './NestedModalToAddApts';
 import $ from 'jquery'
@@ -30,7 +30,7 @@ export class TableAPTS extends Component {
         //this.getCountCheckedCheckboxesListAPTS = this.getCountCheckedCheckboxesListAPTS.bind(this);
         //this.editAllCheckboxesStatesListAPTS = this.editAllCheckboxesStatesListAPTS.bind(this);
         //this.handlerStateAPTStoBeAdd = this.handlerStateAPTStoBeAdd.bind(this);
-        this.deleteAPTS = this.deleteAPTS.bind(this);
+        this.DeleteApts = this.DeleteApts.bind(this);
         this.AddApts = this.AddApts.bind(this);
         this.getTSListFromOIC = this.getTSListFromOIC.bind(this);
     }
@@ -125,7 +125,7 @@ export class TableAPTS extends Component {
         this.GetAptsList();
     }
 
-    async deleteAPTS() {
+    async DeleteApts() {
         let arrayOfObjects = [], item;
         let key = "id";
         let content = document.getElementById("tBodyAPTSContent");
@@ -141,7 +141,7 @@ export class TableAPTS extends Component {
         }
 
         this.setState({ showModalToDelete: false, aptsCanBeDelete: false, loadingAPTS: true });
-        await this.fetchData('Admin/DeleteAPTS', arrayOfObjects);
+        await this.fetchData('Admin/DeleteApts', arrayOfObjects);
         await this.GetAptsList();
     }
 
@@ -230,7 +230,7 @@ export class TableAPTS extends Component {
     renderModals = (showModalToDelete, showModalToAdd, showNestedModalToAdd) => {
         return (
             <Fragment>
-                <ModalToDeleteAPTS show={showModalToDelete} onClose={this.closeModalToDeleteHandler} onDelete={this.deleteAPTS} />
+                <ModalToDeleteApts show={showModalToDelete} onClose={this.closeModalToDeleteHandler} onDelete={this.DeleteApts} />
                 <ModalToAddApts
                     show={showModalToAdd}
                     onClose={this.closeModalToAddHandler}

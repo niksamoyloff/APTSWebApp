@@ -1,7 +1,7 @@
 ﻿import React from 'react';
 import { Button, Modal } from 'react-bootstrap';
 
-const ModalToDeleteAPTS = (props) => {
+const ModalToDeleteApts = (props) => {
     return (
         <Modal show={props.show} onHide={props.onClose} centered>
             <Modal.Header closeButton={props.onClose}>
@@ -18,4 +18,4 @@ const ModalToDeleteAPTS = (props) => {
     );
 }
 
-export default ModalToDeleteAPTS;
+export default ModalToDeleteApts;

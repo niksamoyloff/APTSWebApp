@@ -164,17 +164,16 @@ namespace APTSWebApp.Controllers
         }
 
         [HttpPost]
-        public void DeleteAPTS([FromBody] object data)
+        public async Task DeleteAptsAsync([FromBody] object data)
         {
             var definition = new[] { new { id = "" } };
             var arrDevDes = JsonConvert.DeserializeAnonymousType(data.ToString() ?? string.Empty, definition);
-            int devId;
-            List<OicTs> listToDelete = new List<OicTs>();
+            var listToDelete = new List<OicTs>();
 
-            for (int i = 0; i < arrDevDes.Length; i++)
+            foreach (var t in arrDevDes)
             {
-                devId = int.Parse(arrDevDes[i].id);
-                var tsToDelete = _context.OicTs.Find(devId);
+                var devId = int.Parse(t.id);
+                var tsToDelete = await _context.OicTs.FindAsync(devId);
                 if (tsToDelete != null)
                     listToDelete.Add(tsToDelete);
             }
@@ -183,7 +182,7 @@ namespace APTSWebApp.Controllers
             {
                 AddAction(listToDelete, "Удалил");
                 _context.OicTs.RemoveRange(listToDelete);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
         }
 
