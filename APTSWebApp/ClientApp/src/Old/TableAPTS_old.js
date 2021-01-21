@@ -32,7 +32,7 @@ export class TableAPTS extends Component {
         //this.handlerStateAPTStoBeAdd = this.handlerStateAPTStoBeAdd.bind(this);
         this.DeleteApts = this.DeleteApts.bind(this);
         this.AddApts = this.AddApts.bind(this);
-        this.getTSListFromOIC = this.getTSListFromOIC.bind(this);
+        this.GetTsListFromOic = this.GetTsListFromOic.bind(this);
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -56,7 +56,7 @@ export class TableAPTS extends Component {
 
     openModalToAddHandler = () => {
         this.setState({ showModalToAdd: true, loadingTsFromOIC: true });
-        this.getTSListFromOIC();
+        this.GetTsListFromOic();
     }
 
     closeModalToAddHandler = () => {
@@ -89,8 +89,8 @@ export class TableAPTS extends Component {
             this.populateListToExport(list);
     }
 
-    async getTSListFromOIC() {
-        const response = await fetch('Admin/GetTSListFromOIC');
+    async GetTsListFromOic() {
+        const response = await fetch('Admin/GetTsListFromOic');
         const list = await response.json();
         this.setState({ loadingTsFromOIC: false, tsListFromOIC: list });
     }

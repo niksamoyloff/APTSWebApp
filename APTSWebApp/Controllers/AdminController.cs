@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using APTSWebApp.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace APTSWebApp.Controllers
@@ -255,30 +256,30 @@ namespace APTSWebApp.Controllers
 
         [HttpGet]
         //[ResponseCache(VaryByHeader = "User-Agent", Duration = 60)]
-        public JObject[] GetTSListFromOIC()
+        public async Task<JObject[]> GetTsListFromOicAsync()
         {
-            Api_OIC apiOIC = new Api_OIC(_configuration);
-            DataRowCollection tsCollection = apiOIC.GetTSFromOIC();
-            List<JObject> list = new List<JObject>();
+            var apiOic = new Api_OIC(_configuration);
+            var tsCollection = apiOic.GetTSFromOIC();
+            var list = new List<JObject>();
 
-            if (tsCollection.Count > 0)
+            if (tsCollection.Count == 0) return list.ToArray();
+            
+            foreach (DataRow row in tsCollection)
             {
-                foreach (DataRow row in tsCollection)
+                var tsDb = _context.OicTs
+                    .AsNoTracking()
+                    .FirstOrDefault(item => !item.IsRemoved && item.OicId == (int)row.ItemArray[0]);
+                var jObject = JObject.FromObject(new
                 {
-                    var tsDB = _context.OicTs.FirstOrDefault(item => !item.IsRemoved && item.OicId == (int)row.ItemArray[0]);
-                    JObject jObject = JObject.FromObject(new
-                    {
-                        key = row.ItemArray[0],
-                        oicId = row.ItemArray[0],
-                        label = row.ItemArray[1],
-                        enObj = row.ItemArray[2],
-                        isStatus = tsDB != null && tsDB.IsStatusTs,
-                        isAdded = tsDB != null,
-                        isOic = tsDB != null && tsDB.IsOicTs
-                    });
-                    list.Add(jObject);
-                }
-
+                    key = row.ItemArray[0],
+                    oicId = row.ItemArray[0],
+                    label = row.ItemArray[1],
+                    enObj = row.ItemArray[2],
+                    isStatus = tsDb != null && tsDb.IsStatusTs,
+                    isAdded = tsDb != null,
+                    isOic = tsDb != null && tsDb.IsOicTs
+                });
+                list.Add(jObject);
             }
             return list.ToArray();
         }

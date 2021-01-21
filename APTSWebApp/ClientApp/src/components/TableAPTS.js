@@ -50,7 +50,7 @@ export default class TableAPTS extends Component {
             isOicStatus: false
         };
 
-        this.getTSListFromOIC = this.getTSListFromOIC.bind(this);
+        this.GetTsListFromOic = this.GetTsListFromOic.bind(this);
         this.DeleteApts = this.DeleteApts.bind(this);
         this.AddApts = this.AddApts.bind(this);
         this.EditApts = this.EditApts.bind(this);
@@ -77,7 +77,7 @@ export default class TableAPTS extends Component {
 
     openModalToAddHandler = () => {
         this.setState({ showModalToAdd: true, loadingTsFromOIC: true, actionName: "Add" });
-        this.getTSListFromOIC();
+        this.GetTsListFromOic();
     }
 
     closeModalToAddHandler = () => {
@@ -126,8 +126,8 @@ export default class TableAPTS extends Component {
         });
     }
 
-    async getTSListFromOIC() {
-        const response = await fetch('Admin/GetTSListFromOIC');
+    async GetTsListFromOic() {
+        const response = await fetch('Admin/GetTsListFromOic');
         const list = await response.json();
         this.setState({ loadingTsFromOIC: false, tsListFromOIC: list });
     }
