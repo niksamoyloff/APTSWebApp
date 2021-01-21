@@ -287,28 +287,30 @@ namespace APTSWebApp.Controllers
         [HttpGet]
         public JObject[] GetActions()
         {
-            List<JObject> list = new List<JObject>();
+            var list = new List<JObject>();
 
-            if (_context.Actions.Any())
+            if (!_context.Actions.AsNoTracking().Any()) return list.ToArray();
+            
+            foreach (var action in _context.Actions
+                .AsNoTracking()
+                .OrderByDescending(item => item.Id)
+            )
             {
-                foreach (var action in _context.Actions.OrderByDescending(item => item.Id))
+                var jObject = JObject.FromObject(new
                 {
-                    JObject jObject = JObject.FromObject(new
-                    {
-                        key = action.Id,
-                        dt = action.Dtime.ToString("dd.MM.yyyy HH:mm:ss"),
-                        userName = action.UserName.Split('\\')[1],
-                        actionName = action.ActionName,
-                        tsOicId = action.TsOicId,
-                        tsName = action.OicTsName,
-                        devName = action.DeviceName,
-                        objName = action.PowerObjectName
-                    });
-                    list.Add(jObject);
+                    key = action.Id,
+                    dt = action.Dtime.ToString("dd.MM.yyyy HH:mm:ss"),
+                    userName = action.UserName.Split('\\')[1],
+                    actionName = action.ActionName,
+                    tsOicId = action.TsOicId,
+                    tsName = action.OicTsName,
+                    devName = action.DeviceName,
+                    objName = action.PowerObjectName
+                });
+                list.Add(jObject);
 
-                    if (list?.Count == 10000)
-                        break;
-                }
+                if (list.Count == 10000)
+                    break;
             }
             return list.ToArray();
         }
