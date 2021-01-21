@@ -38,12 +38,12 @@ export class TableAPTS extends Component {
     componentDidUpdate(prevProps, prevState) {
         if (this.props.deviceId !== prevProps.deviceId) {
             this.setState({ loadingAPTS: true });
-            this.getAPTSList();
+            this.GetAptsList();
         }
     }
 
     componentDidMount() {
-        this.getAPTSList();
+        this.GetAptsList();
     }
 
     openModalToDeleteHandler = () => {
@@ -79,9 +79,9 @@ export class TableAPTS extends Component {
     }
 
 
-    async getAPTSList() {
+    async GetAptsList() {
         const data = { id: this.props.deviceId };
-        const response = await this.fetchData('Admin/GetAPTSList', data);
+        const response = await this.fetchData('Admin/GetAptsList', data);
         const list = await response.json();
         this.setState({ loadingAPTS: false, aptsList: list, aptsCanBeDelete: false });
 
@@ -122,7 +122,7 @@ export class TableAPTS extends Component {
 
         this.setState({ showModalToAdd: false, aptsCanBeDelete: false, loadingAPTS: true });
         await this.fetchData('Admin/AddAPTS', arrayOfObjects);
-        this.getAPTSList();
+        this.GetAptsList();
     }
 
     async deleteAPTS() {
@@ -142,7 +142,7 @@ export class TableAPTS extends Component {
 
         this.setState({ showModalToDelete: false, aptsCanBeDelete: false, loadingAPTS: true });
         await this.fetchData('Admin/DeleteAPTS', arrayOfObjects);
-        await this.getAPTSList();
+        await this.GetAptsList();
     }
 
     fetchData(url = '', data = {}) {

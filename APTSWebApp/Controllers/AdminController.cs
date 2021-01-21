@@ -53,7 +53,7 @@ namespace APTSWebApp.Controllers
 
             foreach (var s in ps)
             {
-                JObject jObject = JObject.FromObject(new
+                var jObject = JObject.FromObject(new
                 {
                     key = s.Id,
                     label = s.Name,
@@ -89,21 +89,27 @@ namespace APTSWebApp.Controllers
         }
 
         [HttpPost]
-        public JObject[] GetAPTSList([FromBody] object data)
+        public async Task<JObject[]> GetAptsListAsync([FromBody] object data)
         {
             var definition = new { id = "" };
             var devDes = JsonConvert.DeserializeAnonymousType(data.ToString(), definition);
-            string devId = devDes.id.Split('/')[3];
-            var oicTSs = _context.OicTs.Where(item => !item.IsRemoved && item.DeviceShifr == devId).ToList();
-            List<JObject> list = new List<JObject>();
+            var devId = devDes.id.Split('/')[3];
+            var oicTSs = await _context.OicTs
+                .Where(item => !item.IsRemoved && item.DeviceShifr == devId)
+                .AsNoTracking()
+                .ToListAsync();
+            var list = new List<JObject>();
 
             foreach (var s in oicTSs)
             {
-                var currVal = _context.ReceivedTsvalues.Where(v => v.OicTsid == s.Id)
+                var currentVal = _context.ReceivedTsvalues
+                    .Where(v => v.OicTsid == s.Id)
                     .OrderBy(v => v.Id)
+                    .AsNoTracking()
                     .Select(v => v.Val)
-                    .LastOrDefault().ToString() ?? "";
-                JObject jObject = JObject.FromObject(new
+                    .LastOrDefault()
+                    .ToString();
+                var jObject = JObject.FromObject(new
                 {
                     key = s.Id,
                     oicId = s.OicId,
@@ -111,7 +117,7 @@ namespace APTSWebApp.Controllers
                     isStatus = s.IsStatusTs,
                     comment = s.Comment,
                     isOic = s.IsOicTs,
-                    currentVal = currVal
+                    currVal = currentVal
                 });
                 list.Add(jObject);
             }
