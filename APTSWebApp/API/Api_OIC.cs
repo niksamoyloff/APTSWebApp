@@ -44,25 +44,21 @@ namespace APTSWebApp.API
                 .Distinct()
                 .ToList();
 
-            using (var sqlConnection = new SqlConnection(GetConnectionString()))
+            await using var sqlConnection = new SqlConnection(GetConnectionString());
+            await using var sqlCommand = new SqlCommand(SqlQueryBuild(typeParams, nameParams), sqlConnection);
+            try
             {
-                using (var sqlCommand = new SqlCommand(SqlQueryBuild(typeParams, nameParams), sqlConnection))
-                {
-                    try
-                    {
-                        await sqlConnection.OpenAsync();
-                        var sqlDataAdapter = new SqlDataAdapter(sqlCommand);
+                await sqlConnection.OpenAsync();
+                var sqlDataAdapter = new SqlDataAdapter(sqlCommand);
 
-                        var ds = new DataSet();
-                        sqlDataAdapter.Fill(ds);
+                var ds = new DataSet();
+                sqlDataAdapter.Fill(ds);
 
-                        return ds.Tables[0].Rows;
-                    }
-                    catch
-                    {
-                        return null;
-                    }
-                }
+                return ds.Tables[0].Rows;
+            }
+            catch
+            {
+                return null;
             }
         }
         private string GetConnectionString()
