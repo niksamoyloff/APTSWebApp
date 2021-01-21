@@ -3,7 +3,7 @@ import { Button, Form } from 'react-bootstrap';
 import { IoIosSave, IoMdSettings } from 'react-icons/io'
 import './CustomTableAPTS.css';
 
-export class EditAPTS extends Component {
+export class EditApts extends Component {
     constructor(props) {
         super(props);
 

@@ -12,7 +12,7 @@ import selectTableHOC from "react-table/lib/hoc/selectTable";
 import $ from 'jquery'
 import 'react-table/react-table.css';
 import './CustomTableAPTS.css'
-import ModalToEditAPTS from './ModalToEditAPTS';
+import ModalToEditApts from './ModalToEditApts';
 import { IoMdSettings } from 'react-icons/io'
 
 const SelectTable = selectTableHOC(Table);
@@ -53,7 +53,7 @@ export default class TableAPTS extends Component {
         this.getTSListFromOIC = this.getTSListFromOIC.bind(this);
         this.DeleteApts = this.DeleteApts.bind(this);
         this.AddApts = this.AddApts.bind(this);
-        this.editAPTS = this.editAPTS.bind(this);
+        this.EditApts = this.EditApts.bind(this);
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -184,9 +184,9 @@ export default class TableAPTS extends Component {
         await this.GetAptsList();
     }
 
-    async editAPTS(tsOicId, isStatusTS, commentVal, isOicTS ) {
+    async EditApts(tsOicId, isStatusTS, commentVal, isOicTS ) {
         const data = { id: tsOicId, status: isStatusTS, comment: commentVal, isOic: isOicTS };
-        await this.fetchData('Admin/EditAPTS', data);
+        await this.fetchData('Admin/EditApts', data);
 
         this.setState({ showModalToEdit: false, loadingAPTS: true });
         this.GetAptsList();
@@ -342,7 +342,7 @@ export default class TableAPTS extends Component {
                     enObjName={this.props.enObjName}
                     list={tsOicIdList}
                 />
-                <ModalToEditAPTS
+                <ModalToEditApts
                     key={'editTs-' + this.state.keyOfEdit}
                     show={showModalToEdit}
                     tsId={this.state.tsOicId}
@@ -351,7 +351,7 @@ export default class TableAPTS extends Component {
                     comment={this.state.commentOfEdit}
                     isOic={this.state.isOicStatus}
                     onClose={this.closeModalToEditHandler}
-                    onEdit={this.editAPTS}
+                    onEdit={this.EditApts}
                 />
                 <ModalToDeleteApts show={showModalToDelete} onClose={this.closeModalToDeleteHandler} onDelete={this.DeleteApts} />
                 <NestedModalToActionAPTS show={showNestedModal} action={this.state.actionName} onAbort={this.abortNestedModalHandler} onClose={this.closeNestedModalHandler} />

@@ -227,28 +227,29 @@ namespace APTSWebApp.Controllers
         }
 
         [HttpPost]
-        public void EditAPTS([FromBody] object data)
+        public async Task EditAptsAsync([FromBody] object data)
         {
             var definition = new { id = "", status = "", comment = "", isOic = "" };
-            var tsDes = JsonConvert.DeserializeAnonymousType(data.ToString(), definition);
-            int tsOicId = Convert.ToInt32(tsDes.id);
-            bool tsStatus = Convert.ToBoolean(tsDes.status);
-            bool tsOic = Convert.ToBoolean(tsDes.isOic);
-            string tsComment = tsDes.comment;
+            var tsDes = JsonConvert.DeserializeAnonymousType(data.ToString() ?? string.Empty, definition);
+            var tsOicId = Convert.ToInt32(tsDes.id);
+            var tsStatus = Convert.ToBoolean(tsDes.status);
+            var tsOic = Convert.ToBoolean(tsDes.isOic);
+            var tsComment = tsDes.comment;
 
-            var tsList = _context.OicTs.Where(item => item.OicId == tsOicId).ToList();
-            if (tsList.Count > 0)
+            var tsList = await _context.OicTs
+                .Where(item => item.OicId == tsOicId)
+                .AsNoTracking()
+                .ToListAsync();
+            if (tsList.Any())
             {
                 foreach (var ts in tsList)
                 {
-                    if (ts != null)
-                    {
-                        ts.IsStatusTs = tsStatus;
-                        ts.Comment = tsComment;
-                        ts.IsOicTs = tsOic;
-                    }
+                    ts.IsStatusTs = tsStatus;
+                    ts.Comment = tsComment;
+                    ts.IsOicTs = tsOic;
                 }
-                _context.SaveChanges();
+
+                await _context.SaveChangesAsync();
             }
         }
 

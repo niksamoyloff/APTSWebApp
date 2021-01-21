@@ -1,7 +1,7 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { Button, Modal, Form, Row, Col } from 'react-bootstrap';
 
-function ModalToEditAPTS(props) {
+function ModalToEditApts(props) {
     const [commentVal, setCommentVal] = useState(props.comment)
     const [isStatusTS, setIsStatusTS] = useState(props.status)
     const [isOicTS, setIsOicTS] = useState(props.isOic)
@@ -68,4 +68,4 @@ function ModalToEditAPTS(props) {
     );
 }
 
-export default ModalToEditAPTS;
+export default ModalToEditApts;

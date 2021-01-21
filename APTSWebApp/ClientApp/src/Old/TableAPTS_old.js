@@ -5,7 +5,7 @@ import { ModalToAddApts } from './ModalToAddApts';
 import NestedModalToAddApts from './NestedModalToAddApts';
 import $ from 'jquery'
 import ExportDevAPTS from './ExportDevAPTS';
-import { EditAPTS } from './EditAPTS';
+import { EditApts } from './EditApts';
 import LoaderAPTS from './LoaderAPTS';
 
 export class TableAPTS extends Component {
@@ -292,7 +292,7 @@ export class TableAPTS extends Component {
                                                 </Form.Check>
                                             </td>                                                       
                                             <td className="text-center">
-                                                <EditAPTS tsOicId={ts.oicId} isStatus={this.state.isStatus} editTsStatusHandler={this.editTsStatusHandler}/>
+                                                <EditApts tsOicId={ts.oicId} isStatus={this.state.isStatus} editTsStatusHandler={this.editTsStatusHandler}/>
                                             </td>
                                         </tr>
                                     ))
