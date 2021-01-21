@@ -77,7 +77,7 @@ export class TableMonAPTS extends Component {
         objSend["viewTsRZA"] = viewTsRZA;
         objSend["viewTsOIC"] = viewTsOIC;
 
-        const response = await this.fetchData('Home/GetData', objSend);
+        const response = await this.fetchData('Home/GetMonData', objSend);
         const list = await response.json();
         if (list.length)
             listToExp = this.populateListToExport(list);
@@ -114,7 +114,7 @@ export class TableMonAPTS extends Component {
         });
     }
 
-    async callbackGetDataArchiveMode(tempViewTsRZA, tempViewTsOIC, sDate, eDate) {
+    async callbackGetMonDataArchiveMode(tempViewTsRZA, tempViewTsOIC, sDate, eDate) {
         //this.setState({ loading: true });
 
         //let objSend = {};
@@ -123,7 +123,7 @@ export class TableMonAPTS extends Component {
         //objSend["viewTsRZA"] = tempViewTsRZA;
         //objSend["viewTsOIC"] = tempViewTsOIC;
 
-        //const response = await this.fetchData('Home/GetData', objSend);
+        //const response = await this.fetchData('Home/GetMonData', objSend);
         //const list = await response.json();
         //this.setState({ loading: false, data: list });
         this.getData(tempViewTsRZA, tempViewTsOIC, sDate, eDate);
@@ -207,7 +207,7 @@ export class TableMonAPTS extends Component {
                     <ViewMode
                         loading={loading}
                         isArchiveMode={this.callbackIsArchiveMode.bind(this)}
-                        dataArchiveMode={this.callbackGetDataArchiveMode.bind(this)}
+                        dataArchiveMode={this.callbackGetMonDataArchiveMode.bind(this)}
                         listToExport={listToExport}
                     />
                 </div>

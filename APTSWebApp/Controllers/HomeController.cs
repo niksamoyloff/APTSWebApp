@@ -14,6 +14,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using APTSWebApp.Models;
 using System.Collections;
+using Microsoft.EntityFrameworkCore;
 
 namespace APTSWebApp.Controllers
 {
@@ -34,24 +35,22 @@ namespace APTSWebApp.Controllers
         [HttpGet]
         public int CheckUserAuthorization()
         {
-            string department = _configuration.GetSection("userSettings").GetSection("adminGroupAD").Value;
+            var department = _configuration.GetSection("userSettings").GetSection("adminGroupAD").Value;
 
-            if (_httpContextAccessor.HttpContext.User.IsInRole(department))
-                return 1;
-            return 0;
+            return _httpContextAccessor.HttpContext.User.IsInRole(department) ? 1 : 0;
         }
 
         [HttpPost]
-        public JObject[] GetData([FromBody]object data)
+        public async Task<JObject[]> GetMonDataAsync([FromBody] object data)
         {
             DateTime? startDate;
             DateTime? endDate;
-            bool isArchiveMode = false;
+            var isArchiveMode = false;
 
             var definition = new { sDate = "", eDate = "", viewTsRZA = "", viewTsOIC = "" };
             var dataList = JsonConvert.DeserializeAnonymousType(data.ToString(), definition);
-            var viewTsRZA = Convert.ToBoolean(dataList.viewTsRZA);
-            var viewTsOIC = Convert.ToBoolean(dataList.viewTsOIC);
+            var viewTsRza = Convert.ToBoolean(dataList.viewTsRZA);
+            var viewTsOic = Convert.ToBoolean(dataList.viewTsOIC);
 
             if (dataList.sDate.Length > 0 || dataList.eDate.Length > 0)
             {
@@ -65,48 +64,61 @@ namespace APTSWebApp.Controllers
             if (dataList.eDate.Length > 0)
                 endDate = DateTime.Parse(dataList.eDate);
             else
-                endDate = (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue;           
+                endDate = (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue;
 
-            List<JObject> listObjects = new List<JObject>();
+            var listObjects = new List<JObject>();
+            var listAllTs = await _context.OicTs.Where(ts => !ts.IsRemoved).AsNoTracking().ToListAsync();
+            var listReceivedValues = await _context.ReceivedTsvalues.Where(v => !v.IsRemoved).AsNoTracking().ToListAsync();
 
-            List<ReceivedTsvalues> listReceivedValues = _context.ReceivedTsvalues.ToList();
+            List<OicTs> listTs;
+            List<OicTs> listStatusTs;
 
-            List<OicTs> listTs = new List<OicTs>();
-
-            List<OicTs> listStatusTs = new List<OicTs>();
-
-            if (!viewTsRZA && !viewTsOIC)
-                return new JObject[] { };
-            else if (!viewTsRZA)
+            switch (viewTsRza)
             {
-                listTs = _context.OicTs.Where(ts => !ts.IsRemoved && !ts.IsStatusTs && ts.IsOicTs).ToList();
-                listStatusTs = _context.OicTs.Where(ts => !ts.IsRemoved && ts.IsStatusTs && ts.IsOicTs).ToList();
+                case false when !viewTsOic:
+                    return new JObject[] { };
+                case false:
+                    listTs = listAllTs
+                        .Where(ts => !ts.IsStatusTs && ts.IsOicTs)
+                        .ToList();
+                    listStatusTs = listAllTs
+                        .Where(ts => ts.IsStatusTs && ts.IsOicTs)
+                        .ToList();
+                    break;
+                default:
+                    {
+                        if (!viewTsOic)
+                        {
+                            listTs = listAllTs.Where(ts => !ts.IsStatusTs && !ts.IsOicTs).ToList();
+                            listStatusTs = listAllTs.Where(ts => ts.IsStatusTs && !ts.IsOicTs).ToList();
+                        }
+                        else
+                        {
+                            listTs = listAllTs.Where(ts => !ts.IsStatusTs).ToList();
+                            listStatusTs = listAllTs.Where(ts => ts.IsStatusTs).ToList();
+                        }
+                        break;
+                    }
             }
-            else if (!viewTsOIC)
-            {
-                listTs = _context.OicTs.Where(ts => !ts.IsRemoved && !ts.IsStatusTs && !ts.IsOicTs).ToList();
-                listStatusTs = _context.OicTs.Where(ts => !ts.IsRemoved && ts.IsStatusTs && !ts.IsOicTs).ToList();
-            }
-            else
-            {
-                listTs = _context.OicTs.Where(ts => !ts.IsRemoved && !ts.IsStatusTs).ToList();
-                listStatusTs = _context.OicTs.Where(ts => !ts.IsRemoved && ts.IsStatusTs).ToList();
-            }
-            
-            List<ReceivedTsvalues> listReceivedTsValues = listReceivedValues.Where(ts =>
+
+            var listReceivedTsValues = listReceivedValues.Where(ts =>
                 listTs.Any(item => item.Id == ts.OicTsid)
-                && ts.Val == 1
-                && ts.Dt.Date >= startDate.Value.Date
-                && ts.Dt.Date <= endDate.Value.Date
+                    && ts.Val == 1
+                    && ts.Dt.Date >= startDate.Value.Date
+                    && ts.Dt.Date <= endDate.Value.Date
                 ).ToList();
 
-            List<ReceivedTsvalues> listReceivedStatusTsValues = listReceivedValues.Where(ts =>
-                listStatusTs.Any(item => item.Id == ts.OicTsid)
-                && ts.Dt.Date >= startDate.Value.Date
-                && ts.Dt.Date <= endDate.Value.Date
+            var listReceivedStatusTsValues = listReceivedValues.Where(ts =>
+                listStatusTs
+                    .Any(item => item.Id == ts.OicTsid)
+                    && ts.Dt.Date >= startDate.Value.Date
+                    && ts.Dt.Date <= endDate.Value.Date
                 ).ToList();
 
-            List<ReceivedTsvalues> summaryList = listReceivedTsValues.Concat(listReceivedStatusTsValues).OrderByDescending(ts => ts.Dt).ToList();
+            var summaryList = listReceivedTsValues
+                .Concat(listReceivedStatusTsValues)
+                .OrderByDescending(ts => ts.Dt)
+                .ToList();
 
             summaryList = !isArchiveMode
                 ?
@@ -114,46 +126,77 @@ namespace APTSWebApp.Controllers
                 :
                 summaryList.Take(10000).ToList();
 
-            foreach (var dev in _context.Devices.Where(d => !d.IsRemoved))
+            var devs = await _context.Devices
+                .Where(d => !d.IsRemoved)
+                .AsNoTracking()
+                .ToListAsync();
+
+            var po = await _context.PowerObjects
+                .Where(o => !o.IsRemoved)
+                .Include(o => o.PowerObjectDevices)
+                .AsNoTracking()
+                .ToListAsync();
+
+            foreach (var dev in devs)
             {
-                if (_context.OicTs.Any(item => item.DeviceShifr == dev.Shifr))
+                if (listAllTs.Any(item => item.DeviceShifr == dev.Shifr))
                 {
-                    var tsListOfDevices = _context.OicTs.Where(i => i.DeviceShifr == dev.Shifr).Select(i => i.Id).ToList();
+                    var tsListOfDevices = listAllTs.Where(i => i.DeviceShifr == dev.Shifr).Select(i => i.Id).ToList();
+                    var listReceivedValOfDev = summaryList.Where(ts => tsListOfDevices.Contains(ts.OicTsid)).ToList();
+                    var listOfListsValWithDiffTime = new List<List<ReceivedTsvalues>>();
 
-                    List<ReceivedTsvalues> listReceivedValofDev = summaryList.Where(ts => tsListOfDevices.Contains(ts.OicTsid)).ToList();
-
-                    List<List<ReceivedTsvalues>> listOfListsValWithDiffTime = new List<List<ReceivedTsvalues>>();
-
-                    foreach (var ts in listReceivedValofDev)
+                    foreach (var ts in listReceivedValOfDev)
                     {
-                        if (!listOfListsValWithDiffTime.SelectMany(list => list.Select(item => item.Id)).ToList().Contains(ts.Id))
+                        if (!listOfListsValWithDiffTime
+                            .SelectMany(list => list.Select(item => item.Id))
+                            .ToList()
+                            .Contains(ts.Id)
+                        )
                         {
-                            listOfListsValWithDiffTime.Add(listReceivedValofDev.Where(item =>
-                                item.Dt.Date == ts.Dt.Date
-                                && item.Dt.Hour == ts.Dt.Hour
-                                && item.Dt.Minute == ts.Dt.Minute)
-                                .OrderByDescending(item => item.Dt).ToList() ?? new List<ReceivedTsvalues> { ts });
+                            listOfListsValWithDiffTime.Add(listReceivedValOfDev.Where(item =>
+                                    item.Dt.Date == ts.Dt.Date
+                                    && item.Dt.Hour == ts.Dt.Hour
+                                    && item.Dt.Minute == ts.Dt.Minute)
+                                .OrderByDescending(item => item.Dt)
+                                .ToList()
+                            );
                         }
                     }
 
                     foreach (var subList in listOfListsValWithDiffTime)
                     {
-                        JObject jObject = JObject.FromObject(new
+                        var jObject = JObject.FromObject(new
                         {
-                            dt = subList.FirstOrDefault().Dt.ToString("dd.MM.yyyy HH:mm:ss"),
-                            objName = _context.PowerObjects.Where(item => item.PowerObjectDevices.Count(i => i.DeviceShifr == dev.Shifr) > 0).Select(o => o.Name).FirstOrDefault(),
+                            dt = subList.FirstOrDefault()?.Dt.ToString("dd.MM.yyyy HH:mm:ss"),
+                            objName = po
+                                .FirstOrDefault(item =>
+                                    item.PowerObjectDevices.Any(i => i.DeviceShifr == dev.Shifr)
+                                    )
+                                ?.Name,
                             //primaryName = _context.PrimaryEquipments.Where(item => item.PrimaryEquipmentDevices.Where(p => p.DeviceShifr == dev.Shifr).Count() > 0).Select(item => item.Name).FirstOrDefault(),
-                            tsName = _context.OicTs.Where(ts => ts.Id == subList.FirstOrDefault().OicTsid).Select(ts => ts.Name).FirstOrDefault(),                            
+                            tsName = listAllTs
+                                .FirstOrDefault(ts => ts.Id == subList.FirstOrDefault()?.OicTsid)?.Name,
                             devName = dev.Name,
-                            isOicTs = _context.OicTs.Where(ts => ts.IsOicTs).Select(ts => ts.Id).ToList().Intersect(subList.Select(rTS => rTS.OicTsid)).Any() ? true : false,
+                            isOicTs = listAllTs
+                                .Where(ts => ts.IsOicTs)
+                                .Select(ts => ts.Id)
+                                .ToList()
+                                .Intersect(subList.Select(rTs => rTs.OicTsid))
+                                .Any(),
                             tsList = subList
                                 .Select(item => new
                                 {
                                     key = item.Id,
-                                    oicId = _context.OicTs.FirstOrDefault(ts => ts.Id == item.OicTsid).OicId,
+                                    oicId = listAllTs.FirstOrDefault(ts => ts.Id == item.OicTsid)?.OicId,
                                     dt = item.Dt.ToString("dd.MM.yyyy HH:mm:ss"),
-                                    label = _context.OicTs.Where(ts => ts.Id == item.OicTsid).Select(ts => ts.Name).FirstOrDefault(),
-                                    comment = _context.OicTs.Where(ts => ts.Id == subList.FirstOrDefault().OicTsid).Select(ts => ts.Comment).FirstOrDefault(),
+                                    label = listAllTs
+                                        .Where(ts => ts.Id == item.OicTsid)
+                                        .Select(ts => ts.Name)
+                                        .FirstOrDefault(),
+                                    comment = listAllTs
+                                        .Where(ts => ts.Id == subList.FirstOrDefault()?.OicTsid)
+                                        .Select(ts => ts.Comment)
+                                        .FirstOrDefault(),
                                     value = item.Val
                                 })
                         });
@@ -161,7 +204,11 @@ namespace APTSWebApp.Controllers
                     }
                 }
             }
-            return listObjects.OrderByDescending(o => DateTime.ParseExact(o.GetValue("dt").ToString(), "dd.MM.yyyy HH:mm:ss", null)).ToArray();
+            return listObjects.OrderByDescending(o =>
+                DateTime.ParseExact(o.GetValue("dt")?.ToString() ?? string.Empty,
+                    "dd.MM.yyyy HH:mm:ss", null)
+                )
+                .ToArray();
         }
         [HttpGet]
         public string GetUserName()

@@ -26,7 +26,7 @@ export class ViewMode extends React.Component {
         }
     }
 
-    callbackGetDataPicker = (sDate, eDate) => {
+    callbackGetMonDataPicker = (sDate, eDate) => {
         this.props.dataArchiveMode(this.state.viewTsRZA, this.state.viewTsOIC, sDate, eDate);
     }
 
@@ -83,7 +83,7 @@ export class ViewMode extends React.Component {
                 </DropdownButton>
                 {
                     isArchive
-                        ? <DPicker dataPicker={this.callbackGetDataPicker.bind(this)} isDisabled={!viewTsRZA && !viewTsOIC ? true : false} />
+                        ? <DPicker dataPicker={this.callbackGetMonDataPicker.bind(this)} isDisabled={!viewTsRZA && !viewTsOIC ? true : false} />
                         : <Fragment></Fragment>
                 }
                 <div style={{ margin: '7px 0 5px 30px' }}>

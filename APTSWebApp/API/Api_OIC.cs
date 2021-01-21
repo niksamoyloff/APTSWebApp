@@ -13,7 +13,7 @@ namespace APTSWebApp.API
 {
     public class Api_OIC
     {
-        public string OicConnectionStringMainGroup { get; private set; }
+        public string OicConnectionStringMainGroup { get; }
         public string OicConnectionStringMainGroupReserve { get; private set; }
         public string OicConnectionStringReserveGroup { get; private set; }
 

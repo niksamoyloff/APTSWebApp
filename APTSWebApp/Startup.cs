@@ -78,13 +78,13 @@ namespace APTSWebApp
                 {
                     routes.MapRoute(
                         name: "default",
-                        template: "apts/{controller}/{action=GetData}");
+                        template: "apts/{controller}/{action=GetMonData}");
                 }
                 if (env.IsProduction())
                 {
                     routes.MapRoute(
                         name: "default",
-                        template: "{controller}/{action=GetData}");
+                        template: "{controller}/{action=GetMonData}");
                 }                
             });
 
