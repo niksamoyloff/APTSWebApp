@@ -14,8 +14,8 @@ namespace APTSWebApp.API
     public class Api_OIC
     {
         public string OicConnectionStringMainGroup { get; }
-        public string OicConnectionStringMainGroupReserve { get; private set; }
-        public string OicConnectionStringReserveGroup { get; private set; }
+        public string OicConnectionStringMainGroupReserve { get; }
+        public string OicConnectionStringReserveGroup { get; }
 
         private readonly IConfiguration _configuration;
 
@@ -26,23 +26,34 @@ namespace APTSWebApp.API
             OicConnectionStringMainGroupReserve = _configuration.GetSection("ConnectionStrings").GetSection("oicConnectionStringMainGroupReserve").Value;
             OicConnectionStringReserveGroup = _configuration.GetSection("ConnectionStrings").GetSection("oicConnectionStringReserveGroup").Value;
         }
-        public DataRowCollection GetTSFromOIC()
+        public async Task<DataRowCollection> GetTsFromOicAsync()
         {
-            List<string> typeParams = _configuration.GetSection("userSettings").GetSection("sqlInDefTSType").Value.Split(',', ';').Select(p => p.Trim())
-                .Distinct().Where(p => int.TryParse(p, out int n) == true).ToList();
-            List<string> nameParams = _configuration.GetSection("userSettings").GetSection("sqlLikeDefTSName").Value.Split(',', ';').Select(p => p.Trim())
-                .Distinct().ToList();
+            var typeParams = _configuration
+                .GetSection("userSettings")
+                .GetSection("sqlInDefTSType").Value
+                .Split(',', ';')
+                .Select(p => p.Trim())
+                .Distinct()
+                .Where(p => int.TryParse(p, out _))
+                .ToList();
+            var nameParams = _configuration
+                .GetSection("userSettings")
+                .GetSection("sqlLikeDefTSName").Value
+                .Split(',', ';')
+                .Select(p => p.Trim())
+                .Distinct()
+                .ToList();
 
-            using (SqlConnection sqlConnection = new SqlConnection(GetConnectionString()))
+            using (var sqlConnection = new SqlConnection(GetConnectionString()))
             {
-                using (SqlCommand sqlCommand = new SqlCommand(SqlQueryBuild(typeParams, nameParams), sqlConnection))
+                using (var sqlCommand = new SqlCommand(SqlQueryBuild(typeParams, nameParams), sqlConnection))
                 {
                     try
                     {
-                        sqlConnection.Open();
-                        SqlDataAdapter sqlDataAdapter = new SqlDataAdapter(sqlCommand);
+                        await sqlConnection.OpenAsync();
+                        var sqlDataAdapter = new SqlDataAdapter(sqlCommand);
 
-                        DataSet ds = new DataSet();
+                        var ds = new DataSet();
                         sqlDataAdapter.Fill(ds);
 
                         return ds.Tables[0].Rows;

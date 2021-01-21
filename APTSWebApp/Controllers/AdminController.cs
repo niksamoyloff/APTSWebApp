@@ -258,7 +258,7 @@ namespace APTSWebApp.Controllers
         public async Task<JObject[]> GetTsListFromOicAsync()
         {
             var apiOic = new Api_OIC(_configuration);
-            var tsCollection = apiOic.GetTSFromOIC();
+            var tsCollection = await apiOic.GetTsFromOicAsync();
             var list = new List<JObject>();
 
             if (tsCollection.Count == 0) return list.ToArray();
