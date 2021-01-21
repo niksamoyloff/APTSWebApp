@@ -93,39 +93,31 @@ namespace APTSWebApp.API
         }
         private string GetConnectionStringByHost(string host)
         {
-            string uHost = host.ToUpper();
+            var uHost = host.ToUpper();
             if (uHost == new OicConnectionStringParser(OicConnectionStringMainGroup).Server.ToUpper())
             {
                 return OicConnectionStringMainGroup;
             }
-            else if (uHost == new OicConnectionStringParser(OicConnectionStringMainGroupReserve).Server.ToUpper())
+
+            if (uHost == new OicConnectionStringParser(OicConnectionStringMainGroupReserve).Server.ToUpper())
             {
                 return OicConnectionStringMainGroupReserve;
             }
-            else if (uHost == new OicConnectionStringParser(OicConnectionStringReserveGroup).Server.ToUpper())
-            {
-                return OicConnectionStringReserveGroup;
-            }
-            else
-            {
-                return null;
-            }
+
+            return uHost == new OicConnectionStringParser(OicConnectionStringReserveGroup).Server.ToUpper() ? OicConnectionStringReserveGroup : null;
         }
-        private string SqlQueryBuild(List<string> types, List<string> names)
+        private static string SqlQueryBuild(List<string> types, List<string> names)
         {
-            StringBuilder query = new StringBuilder("SELECT DefTS.ID, DefTS.Name, EnObj.Abbr " +
-                                                    "FROM [OIK].[dbo].[DefTS] " +
-                                                    "INNER JOIN EnObj ON DefTS.EObject = EnObj.ID ");
+            var query = new StringBuilder("SELECT DefTS.ID, DefTS.Name, EnObj.Abbr " +
+                                          "FROM [OIK].[dbo].[DefTS] " +
+                                          "INNER JOIN EnObj ON DefTS.EObject = EnObj.ID ");
             if (types.Count > 0)
             {
                 query.Append("WHERE DefTS.TSType IN(");
                 foreach (var type in types)
                 {
                     query.Append(type);
-                    if (type != types.Last())
-                        query.Append(",");
-                    else
-                        query.Append(") ");
+                    query.Append(type != types.Last() ? "," : ") ");
                 }
                 foreach (var name in names)
                 {
@@ -133,7 +125,8 @@ namespace APTSWebApp.API
                 }
                 return query.ToString();
             }
-            else if (names.Count > 0)
+
+            if (names.Count > 0)
             {
                 query.Append("WHERE ");
                 foreach (var name in names)
@@ -145,8 +138,8 @@ namespace APTSWebApp.API
                 }
                 return query.ToString();
             }
-            else
-                return "";
+
+            return string.Empty;
         }
     }
 }
