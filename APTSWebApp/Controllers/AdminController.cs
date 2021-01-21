@@ -248,6 +248,7 @@ namespace APTSWebApp.Controllers
                     ts.Comment = tsComment;
                     ts.IsOicTs = tsOic;
                 }
+                await AddActionAsync(tsList, "Изменил");
                 await _context.SaveChangesAsync();
             }
         }
@@ -322,12 +323,15 @@ namespace APTSWebApp.Controllers
             var tsList = await _context.OicTs
                 .Where(ts => !ts.IsRemoved && ts.ReceivedTsvalues.Any())
                 .AsNoTracking()
-                .OrderByDescending(item => item.Id).ToListAsync();
+                .OrderByDescending(item => item.Id)
+                .ToListAsync();
             var devs = await _context.Devices
                 .Where(d => !d.IsRemoved && d.OicTs.Any())
-                .AsNoTracking().ToListAsync();
+                .AsNoTracking()
+                .ToListAsync();
             var po = await _context.PowerObjects
                 .Where(o => !o.IsRemoved)
+                .Include(o => o.PowerObjectDevices)
                 .AsNoTracking()
                 .ToListAsync();
             var ps = await _context.PowerSystems
@@ -336,6 +340,7 @@ namespace APTSWebApp.Controllers
                 .ToListAsync();
             var pe = await _context.PrimaryEquipments
                 .Where(e => !e.IsRemoved)
+                .Include(e => e.PrimaryEquipmentPowerObjects)
                 .AsNoTracking()
                 .ToListAsync();
             var rv = await _context.ReceivedTsvalues
@@ -344,7 +349,7 @@ namespace APTSWebApp.Controllers
                 .ToListAsync();
 
             list.AddRange(from ts in tsList
-                let device = devs.FirstOrDefault(d => !d.IsRemoved && d.Shifr == ts.DeviceShifr)
+                let device = devs.FirstOrDefault(d => d.Shifr == ts.DeviceShifr)
                 let eObj = po
                         .FirstOrDefault(o => o.PowerObjectDevices
                             .Any(item => item.DeviceShifr == device.Shifr)
@@ -359,7 +364,7 @@ namespace APTSWebApp.Controllers
                     .Where(v => v.OicTsid == ts.Id)
                     .OrderBy(v => v.Id)
                     .LastOrDefault()?.Val
-                    .ToString() ?? ""
+                    .ToString()
                 where device != null && eObj != null && pSys != null && primary != null
                 select JObject.FromObject(new
                 {

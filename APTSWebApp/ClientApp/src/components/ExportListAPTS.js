@@ -27,7 +27,7 @@ const Export = (props) => {
                 <ExcelColumn label="ID в ОИК" value="tsId" />
                 <ExcelColumn label="Сигнал состояния" value="isStatus" />
                 <ExcelColumn label="ТС ОИК" value="isOic" />
-                <ExcelColumn label="Текущее значение" value="currentVal" />
+                <ExcelColumn label="Текущее значение" value="currVal" />
                 <ExcelColumn label="Примечание" value="comment" />
             </ExcelSheet>
         </ExcelFile>

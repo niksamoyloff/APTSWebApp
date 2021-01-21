@@ -215,7 +215,7 @@ export default class TableAPTS extends Component {
             objToExp["isStatus"] = list[i].isStatus ? "Да" : "Нет";
             objToExp["comment"] = list[i].comment;
             objToExp["isOic"] = list[i].isOic ? "Да" : "Нет";
-            objToExp["currentVal"] = list[i].currentVal;
+            objToExp["currVal"] = list[i].currVal;
             arrayOfObjects.push(objToExp);
         }
 
