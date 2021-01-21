@@ -20,7 +20,7 @@ function ModalToEditApts(props) {
     }
 
     const handleToSave = () => {
-        props.onEdit(tsId, isStatusTS, commentVal, isOicTS)
+        props.onEdit(tsId, isStatusTS, commentVal, isOicTS);
     }
 
     useEffect(() => {

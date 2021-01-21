@@ -20,7 +20,7 @@ export class TreePowObj extends Component {
 
     componentDidMount() {
         this.populateEnObjects();
-        this.exportDevTreeAPTS();
+        this.ExportDevTreeApts();
     }
 
     async populateEnObjects() {
@@ -29,8 +29,8 @@ export class TreePowObj extends Component {
         this.setState({ enObjects: data, loading: false });
     }    
 
-    async exportDevTreeAPTS() {        
-        const response = await fetch('Admin/ExportDevTreeAPTS');
+    async ExportDevTreeApts() {        
+        const response = await fetch('Admin/ExportDevTreeApts');
         const list = await response.json();
         this.setState({ treeToExport: list });
     }

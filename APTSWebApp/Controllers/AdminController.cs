@@ -195,18 +195,18 @@ namespace APTSWebApp.Controllers
             {
                 foreach (var ts in list)
                 {
-                    var device = _context.Devices
+                    var device = await _context.Devices
                         .AsNoTracking()
-                        .FirstOrDefault(item => item.Shifr == ts.DeviceShifr);
-                    var primary = _context.PrimaryEquipments
+                        .FirstOrDefaultAsync(item => item.Shifr == ts.DeviceShifr);
+                    var primary = await _context.PrimaryEquipments
                         .AsNoTracking()
-                        .FirstOrDefault(item => item.Shifr == _context.PrimaryEquipmentDevices
+                        .FirstOrDefaultAsync(item => item.Shifr == _context.PrimaryEquipmentDevices
                             .FirstOrDefault(p => p.DeviceShifr == device.Shifr)
                             .PrimaryEquipmentShifr
                         );
-                    var obj = _context.PowerObjects
+                    var obj = await _context.PowerObjects
                         .AsNoTracking()
-                        .FirstOrDefault(item => item.Id == _context.PowerObjectDevices
+                        .FirstOrDefaultAsync(item => item.Id == _context.PowerObjectDevices
                             .FirstOrDefault(d => d.DeviceShifr == device.Shifr)
                             .PowerObjectId
                         );
@@ -239,7 +239,6 @@ namespace APTSWebApp.Controllers
 
             var tsList = await _context.OicTs
                 .Where(item => item.OicId == tsOicId)
-                .AsNoTracking()
                 .ToListAsync();
             if (tsList.Any())
             {
@@ -249,7 +248,6 @@ namespace APTSWebApp.Controllers
                     ts.Comment = tsComment;
                     ts.IsOicTs = tsOic;
                 }
-
                 await _context.SaveChangesAsync();
             }
         }
@@ -266,9 +264,9 @@ namespace APTSWebApp.Controllers
             
             foreach (DataRow row in tsCollection)
             {
-                var tsDb = _context.OicTs
+                var tsDb = await _context.OicTs
                     .AsNoTracking()
-                    .FirstOrDefault(item => !item.IsRemoved && item.OicId == (int)row.ItemArray[0]);
+                    .FirstOrDefaultAsync(item => !item.IsRemoved && item.OicId == (int)row.ItemArray[0]);
                 var jObject = JObject.FromObject(new
                 {
                     key = row.ItemArray[0],
@@ -315,52 +313,67 @@ namespace APTSWebApp.Controllers
             return list.ToArray();
         }
         [HttpGet]
-        public JObject[] ExportDevTreeAPTS()
+        public async Task<JObject[]> ExportDevTreeAptsAsync()
         {
-            List<JObject> list = new List<JObject>();
+            var list = new List<JObject>();
 
-            if (_context.OicTs.Any())
-            {
-                foreach (var ts in _context.OicTs.Where(item => !item.IsRemoved).ToList().OrderByDescending(item => item.Id))
+            if (!_context.OicTs.AsNoTracking().Any()) return list.ToArray();
+
+            var tsList = await _context.OicTs
+                .Where(ts => !ts.IsRemoved && ts.ReceivedTsvalues.Any())
+                .AsNoTracking()
+                .OrderByDescending(item => item.Id).ToListAsync();
+            var devs = await _context.Devices
+                .Where(d => !d.IsRemoved && d.OicTs.Any())
+                .AsNoTracking().ToListAsync();
+            var po = await _context.PowerObjects
+                .Where(o => !o.IsRemoved)
+                .AsNoTracking()
+                .ToListAsync();
+            var ps = await _context.PowerSystems
+                .Where(s => !s.IsRemoved)
+                .AsNoTracking()
+                .ToListAsync();
+            var pe = await _context.PrimaryEquipments
+                .Where(e => !e.IsRemoved)
+                .AsNoTracking()
+                .ToListAsync();
+            var rv = await _context.ReceivedTsvalues
+                .Where(v => !v.IsRemoved && v.OicTs != null)
+                .AsNoTracking()
+                .ToListAsync();
+
+            list.AddRange(from ts in tsList
+                let device = devs.FirstOrDefault(d => !d.IsRemoved && d.Shifr == ts.DeviceShifr)
+                let eObj = po
+                        .FirstOrDefault(o => o.PowerObjectDevices
+                            .Any(item => item.DeviceShifr == device.Shifr)
+                        )
+                let pSys = ps
+                    .FirstOrDefault(s => eObj != null && s.Id == eObj.PowerSystemId)
+                let primary = pe
+                    .FirstOrDefault(e => e.PrimaryEquipmentPowerObjects
+                        .Any(item => item.PowerObjectId == eObj.Id)
+                    )
+                let currentVal = rv
+                    .Where(v => v.OicTsid == ts.Id)
+                    .OrderBy(v => v.Id)
+                    .LastOrDefault()?.Val
+                    .ToString() ?? ""
+                where device != null && eObj != null && pSys != null && primary != null
+                select JObject.FromObject(new
                 {
-                    var device = _context.Devices
-                        .FirstOrDefault(d => !d.IsRemoved && d.Shifr == ts.DeviceShifr);
-
-                    var eObj = _context.PowerObjects
-                        .FirstOrDefault(o => !o.IsRemoved && o.Id == _context.PowerObjectDevices
-                            .FirstOrDefault(d => device != null && d.DeviceShifr == device.Shifr).PowerObjectId);
-
-                    var pSys = _context.PowerSystems
-                        .FirstOrDefault(s => !s.IsRemoved && eObj != null && s.Id == eObj.PowerSystemId);
-
-                    var primary = _context.PrimaryEquipments
-                        .FirstOrDefault(p => !p.IsRemoved && p.Shifr == _context.PrimaryEquipmentDevices
-                            .FirstOrDefault(p => device != null && p.DeviceShifr == device.Shifr).PrimaryEquipmentShifr);
-
-                    var currentVal = _context.ReceivedTsvalues.Where(v => v.OicTsid == ts.Id)
-                        .OrderBy(v => v.Id)
-                        .Select(v => v.Val)
-                        .LastOrDefault().ToString() ?? "";
-
-                    if (device != null && eObj != null && pSys != null && primary != null)
-                    {
-                        JObject jObject = JObject.FromObject(new
-                        {
-                            powSys = pSys.Name,
-                            enObj = eObj.Name,
-                            primary = primary.Name,
-                            device = device.Name,
-                            tsName = ts.Name,
-                            tsId = ts.OicId,
-                            isStatus = ts.IsStatusTs ? "Да" : "Нет",
-                            comment = ts.Comment,
-                            isOic = ts.IsOicTs ? "Да" : "Нет",
-                            currVal = currentVal
-                        });
-                        list.Add(jObject);
-                    }
-                }
-            }
+                    powSys = pSys.Name,
+                    enObj = eObj.Name,
+                    primary = primary.Name,
+                    device = device.Name,
+                    tsName = ts.Name,
+                    tsId = ts.OicId,
+                    isStatus = ts.IsStatusTs ? "Да" : "Нет",
+                    comment = ts.Comment,
+                    isOic = ts.IsOicTs ? "Да" : "Нет",
+                    currVal = currentVal
+                }));
             return list.ToArray();
         }
     }
